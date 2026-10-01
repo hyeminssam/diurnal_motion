@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>지구의 자전과 천체의 일주 운동 탐구실</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#13204a;      /* 밤하늘 남색 */
+  --deep:#0d1838;
+  --panel:#1b2c5e;
+  --line:#2f4380;
+  --chalk:#eef2ff;
+  --dim:#a9b6dc;
+  --sun:#ffc24b;        /* 태양·전등 */
+  --earth:#3fb8c9;      /* 지구 */
+  --ground:#2c5a47;
+  --ok:#7ee08a;
+  --warn:#ff8a7a;
+  --paper:#f6f8ff;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0;background:var(--deep);color:var(--chalk);
+  font-family:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  font-size:16px;line-height:1.6;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  background-image:radial-gradient(ellipse at 50% -20%, #22377a 0%, var(--deep) 60%);
+  background-attachment:fixed;
+}
+h1,h2,h3,.jua{font-family:"Jua","Noto Sans KR",sans-serif;font-weight:400;letter-spacing:.01em}
+button,select,input{font-family:inherit;font-size:inherit}
+.wrap{max-width:1220px;margin:0 auto;padding:18px 16px 60px}
+header.top{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:flex-end;justify-content:space-between;padding:10px 0 18px}
+header.top .unit{color:var(--dim);font-size:.9rem}
+header.top h1{font-size:clamp(1.7rem,4vw,2.6rem);margin:2px 0 0;line-height:1.15}
+header.top p{margin:4px 0 0;color:var(--dim)}
+
+nav.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;position:sticky;top:env(safe-area-inset-top,0px);z-index:20;
+  background:rgba(13,24,56,.92);backdrop-filter:blur(6px);padding:8px 0}
+nav.steps button{background:var(--panel);color:var(--dim);border:2px solid transparent;border-radius:14px;padding:10px 8px;cursor:pointer;text-align:left;line-height:1.3}
+nav.steps button b{display:block;font-family:"Jua",sans-serif;font-weight:400;font-size:1.05rem;color:var(--chalk)}
+nav.steps button .n{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--line);color:var(--chalk);font-size:.8rem;margin-right:6px}
+nav.steps button[aria-selected="true"]{border-color:var(--sun);color:var(--chalk)}
+nav.steps button[aria-selected="true"] .n{background:var(--sun);color:#3a2600}
+nav.steps button:focus-visible,.btn:focus-visible,.tool:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+@media (max-width:700px){nav.steps button small{display:none} nav.steps button b{font-size:.92rem}}
+
+section.step{display:none;padding-top:14px}
+section.step.on{display:block}
+.lead{font-size:1.06rem;max-width:72ch;margin:4px 0 14px}
+.lead strong{color:var(--sun);font-weight:700}
+
+#s1 .cv-holder{max-width:600px;width:100%;justify-self:center}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,380px);gap:16px;align-items:start}
+@media (max-width:900px){.grid2{grid-template-columns:1fr}}
+.box{background:var(--panel);border-radius:18px;padding:16px;border:1px solid var(--line)}
+.box h3{margin:0 0 8px;font-size:1.2rem}
+canvas{display:block;width:100%;touch-action:none;border-radius:14px}
+.cv-holder{background:#091230;border-radius:16px;border:1px solid var(--line);overflow:hidden}
+
+.btn{background:var(--line);color:var(--chalk);border:0;border-radius:10px;padding:8px 14px;cursor:pointer;line-height:1.3}
+.btn:hover{filter:brightness(1.15)}
+.btn.sun{background:var(--sun);color:#3a2600;font-weight:700}
+.btn.ghost{background:transparent;border:1px solid var(--line)}
+.btn[aria-pressed="true"]{background:var(--sun);color:#3a2600;font-weight:700}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.choice{display:grid;gap:8px;margin:10px 0}
+.choice button{text-align:left;background:#22366f;border:2px solid transparent;color:var(--chalk);border-radius:12px;padding:10px 12px;cursor:pointer}
+.choice button.right{border-color:var(--ok);background:#1e4a3a}
+.choice button.wrong{border-color:var(--warn);background:#4a2630}
+.fb{margin-top:8px;padding:10px 12px;border-radius:12px;background:#0f1c44;display:none}
+.fb.show{display:block}
+.fb.ok{border-left:4px solid var(--ok)}
+.fb.no{border-left:4px solid var(--warn)}
+.keyfacts{margin:12px 0 0;padding:12px 14px;background:#0f1c44;border-radius:12px}
+.keyfacts p{margin:4px 0}
+.muted{color:var(--dim);font-size:.9rem}
+
+/* 가상 실험 */
+.lab{display:grid;grid-template-columns:150px minmax(0,1fr) 290px;gap:12px;align-items:start}
+@media (max-width:1050px){.lab{grid-template-columns:1fr}}
+.toolbox{display:grid;gap:8px}
+@media (max-width:1050px){.toolbox{grid-template-columns:repeat(5,1fr)}}
+.tool{background:#22366f;border:2px dashed #4b64ad;border-radius:14px;padding:8px 6px;text-align:center;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.tool .ic{width:46px;height:46px;margin:0 auto 2px;display:block}
+.tool span{display:block;font-size:.82rem;line-height:1.25}
+.tool.used{opacity:.35;cursor:default;border-style:solid}
+.tool.next{border-color:var(--sun);border-style:solid;box-shadow:0 0 0 3px rgba(255,194,75,.25)}
+.ghost-drag{position:fixed;z-index:100;pointer-events:none;transform:translate(-50%,-50%) scale(1.15);opacity:.9}
+.checklist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.checklist li{display:grid;grid-template-columns:26px 1fr;gap:6px;padding:8px;border-radius:10px;background:#16264f;font-size:.92rem;line-height:1.4}
+.checklist li .ck{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:.8rem}
+.checklist li.done .ck{background:var(--ok);border-color:var(--ok);color:#0b2a12}
+.checklist li.now{outline:2px solid var(--sun)}
+.hint{margin-top:10px;padding:10px 12px;border-radius:12px;background:#2b2a16;color:#ffe9b0;font-size:.93rem;min-height:3em}
+.viewer{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:12px;margin-top:16px;align-items:start}
+@media (max-width:900px){.viewer{grid-template-columns:1fr}}
+.viewer .seg button{font-size:1.1rem;padding:8px 16px}
+#holdBtn{width:100%;padding:14px;font-size:1.05rem;touch-action:none;user-select:none;-webkit-user-select:none}
+#holdBtn.on{filter:brightness(1.2);box-shadow:0 0 0 3px rgba(255,194,75,.4)}
+.results{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:12px;margin-top:14px}
+@media (max-width:800px){.results{grid-template-columns:1fr}}
+.dirs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media (max-width:640px){.dirs{grid-template-columns:repeat(2,1fr)}}
+.dirs figure,.domefig{margin:0;background:var(--paper);border-radius:12px;overflow:hidden;color:#1b2550}
+.dirs figcaption,.domefig figcaption{font-family:"Jua",sans-serif;text-align:center;padding:4px;background:#dfe8ff;font-size:1rem}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#4a2630;color:#fff;border:2px solid var(--warn);
+  padding:10px 16px;border-radius:14px;z-index:200;max-width:min(92vw,560px);display:none;text-align:center}
+.toast.show{display:block}
+.toast.good{background:#1e4a3a;border-color:var(--ok)}
+
+dialog{border:0;border-radius:20px;background:var(--panel);color:var(--chalk);padding:18px;max-width:min(94vw,420px)}
+dialog::backdrop{background:rgba(5,10,30,.7)}
+
+/* 하늘 시뮬레이션 */
+.sky{display:grid;grid-template-columns:minmax(240px,360px) minmax(0,1fr);gap:12px;align-items:start}
+@media (max-width:900px){.sky{grid-template-columns:1fr}}
+.ctrl{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin-top:10px}
+.seg{display:inline-flex;background:#0f1c44;border-radius:12px;padding:3px}
+.seg button{background:transparent;color:var(--dim);border:0;padding:6px 14px;border-radius:9px;cursor:pointer;font-family:"Jua",sans-serif;font-size:1.05rem}
+.seg button[aria-pressed="true"]{background:var(--sun);color:#3a2600}
+input[type=range]{accent-color:var(--sun);width:100%}
+.timeline{flex:1 1 260px;display:grid;gap:2px}
+.timeline .tl{display:flex;justify-content:space-between;font-size:.78rem;color:var(--dim)}
+label.tg{display:inline-flex;gap:6px;align-items:center;cursor:pointer;font-size:.93rem}
+label.tg input{width:18px;height:18px;accent-color:var(--sun)}
+.obs{margin-top:12px}
+
+/* 정리하기 */
+.qa{display:grid;gap:14px}
+.qa .box p{margin:6px 0}
+.answers{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+@media (max-width:640px){.answers{grid-template-columns:repeat(2,1fr)}}
+.answers figure{margin:0;background:var(--paper);border-radius:12px;overflow:hidden;color:#1b2550}
+.answers figcaption{font-family:"Jua",sans-serif;text-align:center;padding:4px;background:#dfe8ff}
+.fill{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin:10px 0}
+.fill label{display:grid;gap:4px;font-size:.95rem}
+.fill select{background:#0f1c44;color:var(--chalk);border:1px solid var(--line);border-radius:10px;padding:8px}
+.fill select.right{border-color:var(--ok)}
+.fill select.wrong{border-color:var(--warn)}
+textarea{width:100%;min-height:80px;background:#0f1c44;color:var(--chalk);border:1px solid var(--line);border-radius:12px;padding:10px;font-family:inherit;font-size:1rem}
+table.sum{width:100%;border-collapse:collapse;font-size:.95rem}
+table.sum th,table.sum td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+table.sum th{font-family:"Jua",sans-serif;font-weight:400;color:var(--sun);width:22%}
+.tablewrap{overflow-x:auto}
+footer{margin-top:30px;color:var(--dim);font-size:.85rem}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div>
+    <div class="unit">Ⅶ. 태양계 / 2. 지구와 달의 운동 · 교과서 252~253쪽</div>
+    <h1>지구의 자전과 천체의 일주 운동</h1>
+    <p>지구본으로 실험하고, 우주와 우리 하늘을 번갈아 보며 별이 왜 움직이는지 알아봐요.</p>
+  </div>
+</header>
+
+<nav class="steps" role="tablist" aria-label="탐구 단계">
+  <button role="tab" aria-selected="true" data-step="1"><b><span class="n">1</span>지구는 어느 쪽으로 돌까?</b><small>우주에서 지구 보기</small></button>
+  <button role="tab" aria-selected="false" data-step="2"><b><span class="n">2</span>가상 실험</b><small>지구본·전등·투명 반구</small></button>
+  <button role="tab" aria-selected="false" data-step="3"><b><span class="n">3</span>우리 하늘 관측</b><small>우주 ↔ 하늘 동시 보기</small></button>
+  <button role="tab" aria-selected="false" data-step="4"><b><span class="n">4</span>정리하기</b><small>활동지 문제 확인</small></button>
+</nav>
+
+<!-- ============ 1단계 ============ -->
+<section class="step on" id="s1" role="tabpanel">
+  <p class="lead">아래 그림은 <strong>북극 바로 위 우주</strong>에서 지구를 내려다본 모습이에요. 지구를 손가락(마우스)으로 잡고 돌려 보거나 재생 버튼을 눌러 보세요.</p>
+  <div class="grid2">
+    <div class="cv-holder"><canvas id="cvSpace1" aria-label="북극 위에서 내려다본 지구"></canvas></div>
+    <div class="box">
+      <h3>질문 1. 지구는 어느 방향으로 돌까요?</h3>
+      <p class="muted">북극 위에서 내려다볼 때를 생각해요.</p>
+      <div class="choice" id="q1">
+        <button data-a="cw">시계 방향</button>
+        <button data-a="ccw">시계 반대 방향</button>
+      </div>
+      <div class="fb" id="q1fb"></div>
+
+      <div id="q2wrap" style="display:none">
+        <h3 style="margin-top:14px">질문 2. 이렇게 돌 때 우리나라에서는 태양이 어느 쪽에서 떠오를까요?</h3>
+        <p class="muted">빨간 점(우리나라)이 밤에서 낮으로 넘어가는 순간을 찾아보세요. 작은 나침반의 '동'이 어디를 가리키나요?</p>
+        <div class="choice" id="q2">
+          <button data-a="e">동쪽</button>
+          <button data-a="w">서쪽</button>
+        </div>
+        <div class="fb" id="q2fb"></div>
+      </div>
+
+      <div class="row" style="margin-top:12px">
+        <button class="btn sun" id="play1">▶ 재생</button>
+        <button class="btn ghost" id="back1">하루 처음으로</button>
+      </div>
+      <div class="keyfacts" id="facts1" style="display:none">
+        <p>🌍 지구는 자전축을 중심으로 <b>서쪽에서 동쪽으로</b> 돌아요. (북극 위에서 보면 <b>시계 반대 방향</b>)</p>
+        <p>🕐 하루에 한 바퀴(360°)씩 돌기 때문에 <b>1시간에 약 15°</b>씩 돌아요.</p>
+        <p>🧭 지구가 도는 쪽이 바로 <b>동쪽</b>이에요.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2단계 ============ -->
+<section class="step" id="s2" role="tabpanel">
+  <p class="lead">왼쪽 준비물을 <strong>끌어다 실험대에 놓으며</strong> 교과서 실험을 해 보세요. 오른쪽 순서를 따라가면 돼요.</p>
+  <div class="lab">
+    <div class="toolbox" id="toolbox" aria-label="준비물">
+      <div class="tool" data-tool="lamp" tabindex="0"><svg class="ic" viewBox="0 0 48 48"><line x1="24" y1="0" x2="24" y2="14" stroke="#999" stroke-width="2"/><rect x="20" y="12" width="8" height="6" fill="#888"/><circle cx="24" cy="27" r="10" fill="#ffd56b" stroke="#ffb020" stroke-width="2"/></svg><span>갓 없는 전등</span></div>
+      <div class="tool" data-tool="globe" tabindex="0"><svg class="ic" viewBox="0 0 48 48"><circle cx="24" cy="21" r="15" fill="#3fb8c9" stroke="#bfe" stroke-width="1.5"/><ellipse cx="24" cy="21" rx="15" ry="4" fill="none" stroke="#bfe"/><line x1="24" y1="4" x2="24" y2="44" stroke="#ccc" stroke-width="2"/><rect x="14" y="42" width="20" height="4" rx="2" fill="#888"/></svg><span>지구본</span></div>
+      <div class="tool" data-tool="observer" tabindex="0"><svg class="ic" viewBox="0 0 48 48"><ellipse cx="24" cy="34" rx="18" ry="7" fill="#5ea36f"/><line x1="24" y1="34" x2="24" y2="20" stroke="#fff" stroke-width="3"/><circle cx="24" cy="16" r="5" fill="#fff"/></svg><span>관측자·지평면 모형</span></div>
+      <div class="tool" data-tool="dome" tabindex="0"><svg class="ic" viewBox="0 0 48 48"><path d="M6 36 A18 18 0 0 1 42 36 Z" fill="rgba(200,230,255,.35)" stroke="#dff" stroke-width="2"/></svg><span>플라스틱 투명 반구</span></div>
+      <div class="tool" data-tool="pen" tabindex="0"><svg class="ic" viewBox="0 0 48 48"><rect x="20" y="4" width="8" height="30" rx="2" fill="#ff5d73" transform="rotate(30 24 24)"/><path d="M30 38 l4 6 l-7 -2z" fill="#333"/></svg><span>유성펜</span></div>
+    </div>
+
+    <div>
+      <div class="cv-holder"><canvas id="cvLab" aria-label="가상 실험대"></canvas></div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn sun" id="lampBtn" disabled>💡 전등 켜기</button>
+        <button class="btn autoBtn" id="autoBtn" aria-pressed="false" disabled>↻ 지구본 자동으로 돌리기 (서→동)</button>
+        <button class="btn ghost" id="clearBtn">표시 지우기</button>
+        <button class="btn ghost" id="resetBtn">처음부터 다시</button>
+      </div>
+      <p class="muted" style="margin:6px 0 0">지구본을 잡고 좌우로 끌면 돌아가요. 전등은 잡고 끌어서 위치와 높이를 바꿀 수 있어요. 실제 크기와 거리의 비율은 실험 장치와 다르게 그렸어요.</p>
+    </div>
+
+    <div class="box">
+      <h3>실험 순서</h3>
+      <ol class="checklist" id="checklist">
+        <li data-c="1"><span class="ck">1</span><span>전등과 지구본을 30 cm 정도 떨어뜨려 놓는다.</span></li>
+        <li data-c="2"><span class="ck">2</span><span>관측자 모형이 남쪽을 보게 붙이고 투명 반구를 씌운다.</span></li>
+        <li data-c="3"><span class="ck">3</span><span>지구본의 우리나라에 동서남북을 맞추어 붙인다.</span></li>
+        <li data-c="4"><span class="ck">4</span><span>전등을 켜고 지구본을 서→동으로 돌리며 반구에 맺힌 빛을 유성펜으로 표시한다.</span></li>
+        <li data-c="5"><span class="ck">5</span><span>전등의 위치와 높이를 바꾸어 4를 반복한다.</span></li>
+      </ol>
+      <div class="hint" id="hint" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div class="viewer">
+    <div>
+      <div class="seg" role="group" aria-label="자세히 보기 방식" id="viewTabs">
+        <button data-v="zoom" aria-pressed="true">🔍 반구 확대 보기</button>
+        <button data-v="pov" aria-pressed="false">👀 반구 속 관측자 시점</button>
+      </div>
+      <div class="cv-holder" style="margin-top:8px"><canvas id="cvView" aria-label="관측 모형 자세히 보기"></canvas></div>
+    </div>
+    <div class="box">
+      <h3 id="viewTitle">반구 확대 보기</h3>
+      <p class="muted" id="viewDesc" style="margin-top:0"></p>
+      <div id="povDirWrap" style="display:none;margin-bottom:10px">
+        <div class="seg" role="group" aria-label="관측자가 바라보는 방향" id="povDirs">
+          <button data-d="E" aria-pressed="false">동</button><button data-d="S" aria-pressed="true">남</button><button data-d="W" aria-pressed="false">서</button><button data-d="N" aria-pressed="false">북</button>
+        </div>
+      </div>
+      <div style="display:grid;gap:6px;margin-bottom:12px">
+        <label class="tg"><input type="checkbox" id="vMarks" checked> 유성펜으로 표시한 선 보기</label>
+        <label class="tg"><input type="checkbox" id="vLamp" checked> 지금 전등 빛 보기</label>
+      </div>
+      <h3>지구본 돌리기</h3>
+      <button class="btn sun" id="holdBtn" disabled>⟳ 누르고 있으면 서→동으로 돌아가요</button>
+      <button class="btn autoBtn" aria-pressed="false" disabled style="width:100%;margin-top:8px">↻ 지구본 자동으로 돌리기 (서→동)</button>
+      <p class="muted" style="margin:8px 0 0">돌리는 동안 유성펜이 준비되어 있으면 빛이 맺힌 곳이 표시돼요.</p>
+    </div>
+  </div>
+
+  <div class="results">
+    <figure class="domefig"><figcaption>투명 반구를 위에서 내려다본 모습</figcaption><canvas id="cvDome"></canvas></figure>
+    <div>
+      <div class="dirs">
+        <figure><figcaption>동쪽</figcaption><canvas id="cvE"></canvas></figure>
+        <figure><figcaption>남쪽</figcaption><canvas id="cvS"></canvas></figure>
+        <figure><figcaption>서쪽</figcaption><canvas id="cvW"></canvas></figure>
+        <figure><figcaption>북쪽</figcaption><canvas id="cvN"></canvas></figure>
+      </div>
+      <p class="muted" style="margin:8px 0 0">관측자 모형이 각 방향을 바라볼 때 본 전등 빛의 경로예요. 화살표는 빛이 움직인 방향이에요. 전등을 아주 높이(지구본 북극 위쪽) 달면 북쪽 하늘에 무엇이 그려지는지도 확인해 보세요.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3단계 ============ -->
+<section class="step" id="s3" role="tabpanel">
+  <p class="lead">왼쪽은 <strong>우주에서 본 지구</strong>, 오른쪽은 같은 시각 <strong>우리나라에서 본 하늘</strong>이에요. 시간을 흐르게 하면서 두 화면을 함께 보세요.</p>
+  <div class="sky">
+    <div class="cv-holder"><canvas id="cvSpace3" aria-label="우주에서 본 지구"></canvas></div>
+    <div class="cv-holder"><canvas id="cvSky" aria-label="우리나라에서 본 하늘"></canvas></div>
+  </div>
+  <div class="box" style="margin-top:12px">
+    <div class="ctrl">
+      <div class="seg" role="group" aria-label="바라보는 방향" id="dirSeg">
+        <button data-d="E" aria-pressed="true">동</button>
+        <button data-d="S" aria-pressed="false">남</button>
+        <button data-d="W" aria-pressed="false">서</button>
+        <button data-d="N" aria-pressed="false">북</button>
+      </div>
+      <button class="btn sun" id="play3">▶ 시간 흐르기</button>
+      <label class="tg">빠르기
+        <select id="speed3" style="background:#0f1c44;color:var(--chalk);border:1px solid var(--line);border-radius:8px;padding:4px">
+          <option value="0.5">1초 = 30분</option>
+          <option value="1" selected>1초 = 1시간</option>
+          <option value="2">1초 = 2시간</option>
+        </select>
+      </label>
+      <div class="timeline">
+        <input type="range" id="time3" min="0" max="24" step="0.05" value="3" aria-label="시각">
+        <div class="tl"><span>0시</span><span>6시</span><span>12시</span><span>18시</span><span>24시</span></div>
+      </div>
+    </div>
+    <div class="ctrl">
+      <label class="tg"><input type="checkbox" id="trail3"> 궤적 남기기 (오래 찍은 별 사진처럼)</label>
+      <label class="tg"><input type="checkbox" id="arrow3" checked> 움직이는 방향 화살표</label>
+      <label class="tg"><input type="checkbox" id="lines3" checked> 별자리 선</label>
+      <label class="tg"><input type="checkbox" id="day3"> 낮에도 별 보기</label>
+    </div>
+    <div class="obs" id="obs3"></div>
+  </div>
+</section>
+
+<!-- ============ 4단계 ============ -->
+<section class="step" id="s4" role="tabpanel">
+  <p class="lead">활동지의 <strong>정리하기</strong>와 <strong>탐구 확인 문제</strong>를 풀어 보세요.</p>
+  <div class="qa">
+    <div class="box">
+      <h3>1. 관측자 모형이 본 전등 빛의 경로를 그려 보자.</h3>
+      <p>활동지에 먼저 그린 다음, 버튼을 눌러 내 실험 결과와 비교해 보세요.</p>
+      <button class="btn" id="showAns1">경로 확인하기</button>
+      <div class="answers" id="ans1" style="display:none">
+        <figure><figcaption>동쪽</figcaption><canvas id="aE"></canvas></figure>
+        <figure><figcaption>남쪽</figcaption><canvas id="aS"></canvas></figure>
+        <figure><figcaption>서쪽</figcaption><canvas id="aW"></canvas></figure>
+        <figure><figcaption>북쪽</figcaption><canvas id="aN"></canvas></figure>
+      </div>
+    </div>
+
+    <div class="box">
+      <h3>2. 관측자 모형이 볼 때 전등 빛은 어느 방향으로 움직였나요?</h3>
+      <p>지구본의 운동 방향과 같은 방향인가요, 반대 방향인가요?</p>
+      <div class="choice" id="q4a">
+        <button data-a="same">지구본이 도는 방향과 같은 방향 (서→동)</button>
+        <button data-a="opp">지구본이 도는 방향과 반대 방향 (동→서)</button>
+      </div>
+      <div class="fb" id="q4afb"></div>
+    </div>
+
+    <div class="box">
+      <h3>3. 전등과 플라스틱 반구는 각각 무엇을 의미할까요?</h3>
+      <div class="fill" id="q4b">
+        <label>전등은…
+          <select data-ans="body"><option value="">골라 보세요</option><option value="earth">지구</option><option value="body">태양이나 별 같은 지구 밖의 천체</option><option value="sky">관측자가 보는 하늘</option></select>
+        </label>
+        <label>플라스틱 반구는…
+          <select data-ans="sky"><option value="">골라 보세요</option><option value="earth">지구</option><option value="body">태양이나 별 같은 지구 밖의 천체</option><option value="sky">관측자가 보는 하늘</option></select>
+        </label>
+      </div>
+      <button class="btn" data-check="q4b">확인</button>
+      <div class="fb" id="q4bfb"></div>
+    </div>
+
+    <div class="box">
+      <h3>4. 하루 동안 천체의 위치가 달라지는 까닭을 지구의 운동으로 설명해 보자.</h3>
+      <textarea id="q4c" placeholder="'지구가 ~하기 때문에 ~' 형태로 써 보세요."></textarea>
+      <button class="btn" id="showAns4c" style="margin-top:8px">예시 답 보기</button>
+      <div class="fb" id="q4cfb"></div>
+    </div>
+
+    <div class="box">
+      <h3>탐구 확인 문제</h3>
+      <p>미연: 관측자 모형이 보았을 때 동쪽에서는 전등 빛이 비스듬하게 뜨는 것처럼 보여.<br>
+      지혁: ( ㉠ )에서는 전등 빛이 동쪽에서 서쪽으로 가로질러 지나가는 것처럼 보이네.<br>
+      승아: 그래? 그렇다면 그 전등 빛이 ( ㉡ )에서 비스듬히 지는 것처럼 보였나 봐.<br>
+      현철: 북쪽에서는 전등 빛이 ( ㉢ ) 근처를 중심으로 ( ㉣ ) 방향으로 원을 그리며 회전하는 것처럼 보이는걸!</p>
+      <div class="fill" id="q5">
+        <label>㉠<select data-ans="s"><option value="">선택</option><option value="e">동쪽</option><option value="s">남쪽</option><option value="w">서쪽</option><option value="n">북쪽</option></select></label>
+        <label>㉡<select data-ans="w"><option value="">선택</option><option value="e">동쪽</option><option value="s">남쪽</option><option value="w">서쪽</option><option value="n">북쪽</option></select></label>
+        <label>㉢<select data-ans="p"><option value="">선택</option><option value="sun">태양</option><option value="p">북극성</option><option value="z">머리 바로 위(천정)</option></select></label>
+        <label>㉣<select data-ans="ccw"><option value="">선택</option><option value="cw">시계</option><option value="ccw">시계 반대</option></select></label>
+      </div>
+      <button class="btn" data-check="q5">채점하기</button>
+      <div class="fb" id="q5fb"></div>
+    </div>
+
+    <div class="box">
+      <h3>한눈에 정리</h3>
+      <div class="tablewrap">
+      <table class="sum">
+        <tr><th>지구의 자전</th><td>지구가 자전축을 중심으로 하루에 한 바퀴씩 <b>서쪽에서 동쪽으로</b> 도는 운동 (1시간에 약 15°)</td></tr>
+        <tr><th>천체의 일주 운동</th><td>지구가 자전하기 때문에 천체가 하루에 한 바퀴씩 <b>동쪽에서 서쪽으로</b> 도는 것처럼 보이는 <b>겉보기 운동</b> (1시간에 약 15°). 별이나 태양이 실제로 지구 둘레를 도는 것이 아니에요.</td></tr>
+        <tr><th>동쪽 하늘</th><td>오른쪽 위로 비스듬히 떠오른다.</td></tr>
+        <tr><th>남쪽 하늘</th><td>동쪽(왼쪽)에서 서쪽(오른쪽)으로 지평선과 나란하게 호를 그리며 지나간다.</td></tr>
+        <tr><th>서쪽 하늘</th><td>오른쪽 아래로 비스듬히 진다.</td></tr>
+        <tr><th>북쪽 하늘</th><td>북극성 근처를 중심으로 시계 반대 방향으로 원을 그리며 돈다. 북극성은 지구 자전축을 북쪽으로 늘인 곳 가까이에 있어서 거의 움직이지 않는 것처럼 보인다.</td></tr>
+      </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  하늘 시뮬레이션은 우리나라(북위 약 37°)에서 춘분 무렵(태양이 정동쪽에서 떠서 정서쪽으로 지는 때)을 기준으로 계산했어요. 계절에 따라 태양이 뜨고 지는 위치와 높이는 달라지지만, 동쪽에서 떠서 서쪽으로 지는 일주 운동의 방향은 같아요. 그림 속 크기와 거리는 실제 비율과 다르게 나타냈어요.
+</footer>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<dialog id="obsDlg">
+  <h3 class="jua" style="margin:0 0 4px;font-size:1.3rem">관측자 모형 준비하기</h3>
+  <p class="muted" style="margin:0 0 8px">지평면 모형을 위에서 본 모습이에요. 관측자를 끌어 돌려서 <b>남쪽</b>을 바라보게 하고, 오른쪽 투명 반구를 끌어다 씌우세요.</p>
+  <div style="display:grid;grid-template-columns:1fr 70px;gap:8px;align-items:center">
+    <canvas id="cvObs" style="background:#0d1838"></canvas>
+    <div class="tool" id="domeMini" style="padding:4px"><svg class="ic" viewBox="0 0 48 48"><path d="M6 36 A18 18 0 0 1 42 36 Z" fill="rgba(200,230,255,.35)" stroke="#dff" stroke-width="2"/></svg><span>투명 반구</span></div>
+  </div>
+  <p id="obsMsg" style="min-height:1.6em;margin:8px 0"></p>
+  <div class="row" style="justify-content:flex-end">
+    <button class="btn ghost" id="obsCancel">닫기</button>
+    <button class="btn sun" id="obsOk">완성!</button>
+  </div>
+</dialog>
+
+<script>
+(()=>{
+"use strict";
+/* ---------- 공통 수학 ---------- */
+const D2R=Math.PI/180, R2D=180/Math.PI;
+const LAT=37*D2R;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const dot=(a,b)=>a.x*b.x+a.y*b.y+a.z*b.z;
+const norm=a=>{const l=Math.hypot(a.x,a.y,a.z)||1;return{x:a.x/l,y:a.y/l,z:a.z/l}};
+const cross=(a,b)=>({x:a.y*b.z-a.z*b.y,y:a.z*b.x-a.x*b.z,z:a.x*b.y-a.y*b.x});
+const add=(a,b)=>({x:a.x+b.x,y:a.y+b.y,z:a.z+b.z});
+const mul=(a,s)=>({x:a.x*s,y:a.y*s,z:a.z*s});
+/* 지평 좌표: x=동, y=북, z=천정. 방위각은 북(0)→동(90)→남(180)→서(270) */
+const vAltAz=(alt,az)=>{const c=Math.cos(alt);return{x:c*Math.sin(az),y:c*Math.cos(az),z:Math.sin(alt)}};
+/* 적도 좌표 → 지평 좌표 (H: 시간각, 서쪽이 +) */
+function eqToHor(H,dec,lat=LAT){
+  const cd=Math.cos(dec),sd=Math.sin(dec),cH=Math.cos(H),sH=Math.sin(H),cl=Math.cos(lat),sl=Math.sin(lat);
+  return {x:-cd*sH, y:sd*cl-cd*cH*sl, z:sd*sl+cd*cH*cl};
+}
+/* 시각(태양시, 시간) → 지방 항성시. 춘분 무렵: 태양 적경 0h */
+const lstOf=t=>t-12;
+
+/* 스테레오 투영 카메라 */
+function makeCam(az0,alt0,fov,W,cx,cy){
+  const f=vAltAz(alt0*D2R,az0*D2R);
+  const r=norm({x:f.y,y:-f.x,z:0});
+  const u=cross(r,f);
+  const k=(W/2)/(2*Math.tan(fov*D2R/4));
+  return {f,r,u,k,cx,cy,p(v){const d=dot(v,f);if(d<-0.35)return null;const s=2/(1+d);return[cx+k*dot(v,r)*s,cy-k*dot(v,u)*s,d]}};
+}
+const FRAMES={E:{az:90,alt:24,name:'동'},S:{az:180,alt:26,name:'남'},W:{az:270,alt:24,name:'서'},N:{az:0,alt:37,name:'북'}};
+function camFor(dir,W,H){
+  const F=FRAMES[dir];
+  const cy= dir==='N'? H*0.40 : H*0.48;
+  return makeCam(F.az,F.alt,112,W,W/2,cy);
+}
+
+/* 캔버스 크기 맞추기 */
+function fit(cv,W,H){
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  const cw=cv.clientWidth; if(!cw) return null;
+  const ch=cw*H/W;
+  const pw=Math.round(cw*dpr), ph=Math.round(ch*dpr);
+  if(cv.width!==pw||cv.height!==ph){cv.width=pw;cv.height=ph;cv.style.height=ch+'px';}
+  const ctx=cv.getContext('2d');ctx.setTransform(cv.width/W,0,0,cv.width/W,0,0);return ctx;
+}
+function pos(cv,e,W){const r=cv.getBoundingClientRect();const k=W/r.width;return{x:(e.clientX-r.left)*k,y:(e.clientY-r.top)*k}}
+function arrowHead(ctx,x,y,ang,s,col){
+  ctx.save();ctx.translate(x,y);ctx.rotate(ang);ctx.fillStyle=col;ctx.beginPath();
+  ctx.moveTo(s,0);ctx.lineTo(-s*0.7,s*0.6);ctx.lineTo(-s*0.35,0);ctx.lineTo(-s*0.7,-s*0.6);ctx.closePath();ctx.fill();ctx.restore();
+}
+function rand(seed){let s=seed>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296}}
+const toast=(msg,good=false)=>{const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(good?' good':'');clearTimeout(toast._t);toast._t=setTimeout(()=>t.className='toast',2600)};
+const timeStr=t=>{t=((t%24)+24)%24;let h=Math.floor(t),m=Math.floor((t-h)*60/5)*5;const ap=h<12?'오전':'오후';let hh=h%12;if(hh===0)hh=12;return `${ap} ${hh}시 ${String(m).padStart(2,'0')}분`};
+
+/* ---------- 별 자료 (적경 h, 적위 °, 등급, 이름) ---------- */
+const STARS=[
+ [2.53,89.26,2.0,'북극성'],
+ [11.06,61.75,1.8,''],[11.03,56.38,2.4,''],[11.90,53.69,2.4,''],[12.26,57.03,3.3,''],[12.90,55.96,1.8,''],[13.40,54.93,2.2,''],[13.79,49.31,1.9,''],
+ [0.15,59.15,2.3,''],[0.68,56.54,2.2,''],[0.95,60.72,2.2,''],[1.43,60.24,2.7,''],[1.91,63.67,3.4,''],
+ [5.92,7.41,0.5,'베텔게우스'],[5.24,-8.20,0.1,'리겔'],[5.42,6.35,1.6,''],[5.68,-1.94,1.7,''],[5.60,-1.20,1.7,''],[5.53,-0.30,2.2,''],[5.80,-9.67,2.1,''],
+ [6.75,-16.72,-1.4,'시리우스'],[7.66,5.22,0.4,'프로키온'],[10.14,11.97,1.4,'레굴루스'],[13.42,-11.16,1.0,'스피카'],
+ [14.26,19.18,0.0,'아크투루스'],[18.62,38.78,0.0,'직녀성'],[19.85,8.87,0.8,'견우성'],[20.69,45.28,1.3,'데네브'],
+ [16.49,-26.43,1.0,'안타레스'],[5.28,46.0,0.1,'카펠라'],[4.60,16.5,0.9,'알데바란'],[7.76,28.03,1.1,'폴룩스'],[22.96,-29.6,1.2,'포말하우트']
+].map(s=>({ra:s[0]*15*D2R,dec:s[1]*D2R,mag:s[2],name:s[3]}));
+const LINES=[[7,6],[6,5],[5,4],[4,3],[3,2],[2,1],[1,4],
+ [8,9],[9,10],[10,11],[11,12],
+ [13,15],[15,18],[13,16],[18,17],[17,16],[18,14],[16,19]];
+const GROUP_LABELS=[{i:[1,7],name:'북두칠성'},{i:[8,12],name:'카시오페이아자리'},{i:[13,19],name:'오리온자리'}];
+(()=>{const r=rand(7);for(let i=0;i<260;i++){const z=r()*2-1;const ra=r()*Math.PI*2;STARS.push({ra,dec:Math.asin(z),mag:3.6+r()*1.6,name:'',bg:true})}})();
+
+/* ===================================================
+   우주에서 내려다본 지구 (1, 3단계 공용)
+   =================================================== */
+const SPACE_BG=(()=>{const r=rand(3),a=[];for(let i=0;i<90;i++)a.push([r()*500,r()*500,r()*1.2+0.3]);return a})();
+function obsAngle(T){return Math.PI+((T-12)*15)*D2R} /* 수학 좌표(반시계+), 정오에 태양(왼쪽)을 향함 */
+function drawSpace(cv,T,opt={}){
+  const W=500,H=500;const ctx=fit(cv,W,H);if(!ctx)return;
+  const cx=268,cy=262,R=158;
+  ctx.fillStyle='#070d24';ctx.fillRect(0,0,W,H);
+  for(const s of SPACE_BG){ctx.fillStyle='rgba(255,255,255,.55)';ctx.beginPath();ctx.arc(s[0],s[1],s[2],0,7);ctx.fill()}
+  /* 태양 */
+  const g=ctx.createRadialGradient(-30,cy,10,-30,cy,150);g.addColorStop(0,'rgba(255,214,107,1)');g.addColorStop(.35,'rgba(255,180,60,.55)');g.addColorStop(1,'rgba(255,180,60,0)');
+  ctx.fillStyle=g;ctx.fillRect(0,0,200,H);
+  ctx.fillStyle='#ffd56b';ctx.beginPath();ctx.arc(-30,cy,58,0,7);ctx.fill();
+  ctx.fillStyle='#3a2600';ctx.font='15px Jua, sans-serif';ctx.textAlign='left';ctx.fillText('태양',4,cy+5);
+  ctx.strokeStyle='rgba(255,214,107,.35)';ctx.lineWidth=2;
+  for(const dy of[-120,-60,60,120]){ctx.beginPath();ctx.moveTo(40,cy+dy);ctx.lineTo(cx-R-14,cy+dy);ctx.stroke();arrowHead(ctx,cx-R-14,cy+dy,0,7,'rgba(255,214,107,.5)')}
+  /* 지구 */
+  const eg=ctx.createRadialGradient(cx-50,cy-40,20,cx,cy,R);eg.addColorStop(0,'#5fd0de');eg.addColorStop(1,'#1e6f8e');
+  ctx.fillStyle=eg;ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.fill();
+  const phi=obsAngle(T);
+  ctx.save();ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.clip();
+  ctx.strokeStyle='rgba(255,255,255,.28)';ctx.lineWidth=1;
+  for(const lat of[30,60]){ctx.setLineDash([4,4]);ctx.beginPath();ctx.arc(cx,cy,R*Math.cos(lat*D2R),0,7);ctx.stroke()}
+  ctx.setLineDash([]);
+  for(let lon=0;lon<360;lon+=30){const a=phi+(lon-127)*D2R;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+R*Math.cos(a),cy-R*Math.sin(a));ctx.stroke()}
+  ctx.fillStyle='rgba(3,6,25,.62)';ctx.fillRect(cx,cy-R-2,R+4,2*R+4);
+  ctx.restore();
+  ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(cx,cy,R,0,7);ctx.stroke();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx,cy,3.5,0,7);ctx.fill();
+  ctx.font='13px "Noto Sans KR", sans-serif';ctx.textAlign='center';ctx.fillText('북극',cx,cy-8);
+  ctx.fillStyle='rgba(255,255,255,.75)';ctx.font='14px Jua, sans-serif';
+  ctx.fillText('낮',cx-R*0.55,cy+R*0.95-8);ctx.fillText('밤',cx+R*0.55,cy+R*0.95-8);
+  /* 자전 방향 화살표 (시계 반대) */
+  ctx.strokeStyle='#9ff0ff';ctx.lineWidth=4;const rr=R+20;
+  ctx.beginPath();ctx.arc(cx,cy,rr,70*D2R,25*D2R,true);ctx.stroke();
+  const ea=25*D2R;arrowHead(ctx,cx+rr*Math.cos(ea),cy+rr*Math.sin(ea),Math.atan2(-Math.cos(ea),Math.sin(ea)),11,'#9ff0ff');
+  ctx.fillStyle='#9ff0ff';ctx.font='15px Jua, sans-serif';ctx.textAlign='right';
+  ctx.fillText('자전 방향',W-8,cy+R+20);ctx.fillText('(서 → 동)',W-8,cy+R+38);
+  /* 관측자(우리나라) */
+  const rk=R*Math.cos(LAT);const ox=cx+rk*Math.cos(phi),oy=cy-rk*Math.sin(phi);
+  const toN={x:(cx-ox)/rk,y:(cy-oy)/rk};               /* 북: 북극(중심) 쪽 */
+  const toE={x:-Math.sin(phi),y:-Math.cos(phi)};         /* 동: 자전하는 쪽(반시계 접선) */
+  const dirs={N:toN,S:{x:-toN.x,y:-toN.y},E:toE,W:{x:-toE.x,y:-toE.y}};
+  const nm={N:'북',S:'남',E:'동',W:'서'};
+  for(const k of['N','E','S','W']){
+    const d=dirs[k];const L=opt.view===k?46:26;const col=opt.view===k?'#ffc24b':'rgba(255,255,255,.9)';
+    ctx.strokeStyle=col;ctx.lineWidth=opt.view===k?3.5:2;ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(ox+d.x*L,oy+d.y*L);ctx.stroke();
+    arrowHead(ctx,ox+d.x*L,oy+d.y*L,Math.atan2(d.y,d.x),opt.view===k?9:6,col);
+    ctx.fillStyle=col;ctx.font=(opt.view===k?'16px':'12px')+' Jua, sans-serif';ctx.textAlign='center';
+    ctx.fillText(nm[k],ox+d.x*(L+12),oy+d.y*(L+12)+5);
+  }
+  ctx.fillStyle='#ff4d5e';ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(ox,oy,7,0,7);ctx.fill();ctx.stroke();
+  /* 글자 */
+  ctx.textAlign='left';ctx.fillStyle='#fff';ctx.font='18px Jua, sans-serif';
+  ctx.fillText('북극 위에서 내려다본 지구',14,28);
+  ctx.font='14px "Noto Sans KR", sans-serif';ctx.fillStyle='#cfe0ff';
+  ctx.fillText('● 우리나라  '+timeStr(T),14,50);
+  const tt=((T%24)+24)%24;let tag='';
+  if(tt>5.4&&tt<6.6)tag='해 뜰 무렵';else if(tt>11.4&&tt<12.6)tag='한낮(정오) 무렵';else if(tt>17.4&&tt<18.6)tag='해 질 무렵';else if(tt>23.4||tt<0.6)tag='한밤중';
+  if(tag){ctx.fillStyle='#ffc24b';ctx.font='16px Jua, sans-serif';ctx.fillText(tag,14,72)}
+  if(opt.view){ctx.fillStyle='rgba(255,255,255,.7)';ctx.font='12px "Noto Sans KR", sans-serif';ctx.fillText('주황 화살표: 지금 바라보는 방향',14,H-14)}
+}
+
+/* ===================================================
+   1단계
+   =================================================== */
+const S1={T:3,play:false,drag:null,answered:false};
+const cvS1=document.getElementById('cvSpace1');
+document.querySelectorAll('#q1 button').forEach(b=>b.onclick=()=>{
+  const ok=b.dataset.a==='ccw';
+  document.querySelectorAll('#q1 button').forEach(x=>x.classList.remove('right','wrong'));
+  b.classList.add(ok?'right':'wrong');
+  const fb=document.getElementById('q1fb');fb.className='fb show '+(ok?'ok':'no');
+  fb.innerHTML=ok?'맞아요! 북극 위에서 보면 지구는 <b>시계 반대 방향</b>, 즉 <b>서쪽에서 동쪽으로</b> 돌아요. 재생해서 확인해 보세요.'
+                :'다시 생각해 봐요. 재생 버튼을 눌러 빨간 점이 어느 쪽으로 움직이는지 보세요.';
+  if(ok){document.getElementById('q2wrap').style.display='block';S1.play=true;updPlay1()}
+});
+document.querySelectorAll('#q2 button').forEach(b=>b.onclick=()=>{
+  const ok=b.dataset.a==='e';
+  document.querySelectorAll('#q2 button').forEach(x=>x.classList.remove('right','wrong'));
+  b.classList.add(ok?'right':'wrong');
+  const fb=document.getElementById('q2fb');fb.className='fb show '+(ok?'ok':'no');
+  fb.innerHTML=ok?'맞아요! 우리나라가 밤에서 낮으로 넘어갈 때 태양은 <b>동쪽 지평선</b>에 있어요. 지구가 동쪽으로 돌기 때문에 태양은 동쪽에서 떠오르는 것처럼 보여요.'
+                :'우리나라가 밤에서 낮으로 넘어가는 순간(해 뜰 무렵)에 멈추고, 태양이 나침반의 어느 글자 쪽에 있는지 보세요.';
+  if(ok)document.getElementById('facts1').style.display='block';
+});
+const play1=document.getElementById('play1');
+function updPlay1(){play1.textContent=S1.play?'❚❚ 멈춤':'▶ 재생'}
+play1.onclick=()=>{S1.play=!S1.play;updPlay1()};
+document.getElementById('back1').onclick=()=>{S1.T=0;};
+let wrongWarnAt=0;
+cvS1.addEventListener('pointerdown',e=>{const p=pos(cvS1,e,500);const a=Math.atan2(-(p.y-262),p.x-268);if(Math.hypot(p.x-268,p.y-262)<190){S1.drag=a;S1.play=false;updPlay1();cvS1.setPointerCapture(e.pointerId)}});
+cvS1.addEventListener('pointermove',e=>{if(S1.drag==null)return;const p=pos(cvS1,e,500);const a=Math.atan2(-(p.y-262),p.x-268);let d=a-S1.drag;if(d>Math.PI)d-=2*Math.PI;if(d<-Math.PI)d+=2*Math.PI;
+  if(d<-0.02&&performance.now()-wrongWarnAt>2500){wrongWarnAt=performance.now();toast('실제 지구는 이 방향으로 돌지 않아요. 북극 위에서 보면 시계 반대 방향으로 돌아요!')}
+  S1.T+=d*R2D/15;S1.drag=a});
+const endDrag1=()=>S1.drag=null;cvS1.addEventListener('pointerup',endDrag1);cvS1.addEventListener('pointercancel',endDrag1);
+
+/* ===================================================
+   2단계: 가상 실험
+   =================================================== */
+const LW=900,LH=540,TABLE=470,GY=262,GR=105,E_TILT=12*D2R,CM=7,DR=0.45; /* 7px = 1cm, DR: 투명 반구 반지름(지구본 반지름 단위, 실제보다 크게) */
+const KR={lat:37*D2R,lon:127*D2R};
+const COLORS=['#ff4d6a','#1e9bff','#f2a900','#21b34a','#a05cff','#ff7a1a','#00b3b3','#e0409a'];
+const lab={lamp:null,globe:null,lampOn:false,obsReady:false,obsAttached:false,penReady:false,rho:-40*D2R,
+  tracks:[],cur:null,auto:false,drag:null,heights:new Set(),done:{},lastLampKey:null};
+const cvLab=document.getElementById('cvLab');
+const tools=[...document.querySelectorAll('#toolbox .tool')];
+const hintEl=document.getElementById('hint');
+
+function gproj(P){ /* 지구본 기준(반지름 단위) → 화면 */
+  const c=Math.cos(E_TILT),s=Math.sin(E_TILT);
+  return [lab.globe.x+GR*P.x, GY-GR*(P.y*c-P.z*s), P.z*c+P.y*s];
+}
+function lampDir(){return norm({x:lab.lamp.x-lab.globe.x,y:GY-lab.lamp.y,z:0})}
+function obsFrame(){ /* 지구본 위 우리나라 관측자의 위·북·동 방향 */
+  const lo=KR.lon+lab.rho, c=Math.cos(KR.lat);
+  const n={x:c*Math.sin(lo),y:Math.sin(KR.lat),z:c*Math.cos(lo)};
+  const N=norm(add({x:0,y:1,z:0},mul(n,-n.y)));
+  const E=cross(N,n);
+  return{n,N,E};
+}
+function lampLocal(){ /* 관측자에게 보이는 전등의 고도·방위 */
+  const L=lampDir(),{n,N,E}=obsFrame();
+  return{alt:Math.asin(clamp(dot(L,n),-1,1)),az:Math.atan2(dot(L,E),dot(L,N)),L};
+}
+function lampKey(){if(!lab.lamp||!lab.globe)return null;const L=lampDir();return Math.round(Math.asin(L.y)*R2D/3)}
+
+function setHint(){
+  let h='';
+  if(!lab.lamp&&!lab.globe)h='① 왼쪽의 <b>전등</b>과 <b>지구본</b>을 끌어다 실험대 위에 놓아 보세요.';
+  else if(!lab.lamp)h='<b>전등</b>도 끌어다 놓으세요.';
+  else if(!lab.globe)h='<b>지구본</b>도 끌어다 놓으세요.';
+  else if(!lab.done[1])h='전등과 지구본 사이를 <b>30 cm 정도</b>로 맞춰 보세요. 전등을 끌면 거리가 바뀌어요.';
+  else if(!lab.obsReady)h='② <b>관측자·지평면 모형</b>을 실험대로 끌어 오세요.';
+  else if(!lab.obsAttached)h='③ 준비된 관측 모형을 지구본의 <b>우리나라(깜빡이는 빨간 점)</b> 위에 놓으세요. 점이 안 보이면 지구본을 돌려 앞쪽으로 오게 하세요.';
+  else if(!lab.lampOn)h='④ <b>전등 켜기</b> 버튼을 누르세요.';
+  else if(!lab.penReady)h='④ <b>유성펜</b>을 끌어다 지구본 위 투명 반구에 놓으세요.';
+  else if(!lab.done[4])h='④ 지구본을 잡고 <b>서쪽에서 동쪽으로</b> 돌리세요. 투명 반구에 맺힌 빛을 따라 선이 그려져요.';
+  else if(!lab.done[5])h='⑤ 전등을 끌어 <b>높이를 바꾼 뒤</b> 다시 돌려 보세요. 아주 높게(지구본 북극 위쪽)도 달아 보세요.';
+  else h='잘했어요! 아래 결과를 보고, 방향마다 빛이 어떻게 움직였는지 이야기해 보세요. 그다음 ③단계로 가서 진짜 하늘과 비교해요.';
+  hintEl.innerHTML=h;
+  /* 체크리스트 */
+  const firstUndone=[1,2,3,4,5].find(k=>!lab.done[k]);
+  document.querySelectorAll('#checklist li').forEach(li=>{const k=+li.dataset.c;li.classList.toggle('done',!!lab.done[k]);li.classList.toggle('now',k===firstUndone);li.querySelector('.ck').textContent=lab.done[k]?'✓':k});
+  /* 다음에 쓸 준비물 강조 */
+  const next=!lab.lamp?'lamp':!lab.globe?'globe':!lab.done[1]?null:!lab.obsReady?'observer':!lab.obsAttached?'observer':!lab.lampOn?null:!lab.penReady?'pen':null;
+  tools.forEach(t=>t.classList.toggle('next',t.dataset.tool===next));
+  tools.find(t=>t.dataset.tool==='lamp').classList.toggle('used',!!lab.lamp);
+  tools.find(t=>t.dataset.tool==='globe').classList.toggle('used',!!lab.globe);
+  const ob=tools.find(t=>t.dataset.tool==='observer');
+  ob.classList.toggle('used',lab.obsAttached);
+  ob.querySelector('span').textContent=lab.obsReady&&!lab.obsAttached?'관측 모형 (완성) → 우리나라에':'관측자·지평면 모형';
+  tools.find(t=>t.dataset.tool==='dome').classList.toggle('used',lab.obsReady);
+  tools.find(t=>t.dataset.tool==='pen').classList.toggle('used',lab.penReady);
+  document.getElementById('lampBtn').disabled=!lab.lamp;
+  document.getElementById('lampBtn').textContent=lab.lampOn?'💡 전등 끄기':'💡 전등 켜기';
+  document.querySelectorAll('.autoBtn').forEach(b=>b.disabled=!(lab.penReady&&lab.lampOn));document.getElementById('holdBtn').disabled=!lab.globe;
+}
+function checkDistance(){
+  if(!lab.lamp||!lab.globe)return;
+  const d=(Math.hypot(lab.lamp.x-lab.globe.x,lab.lamp.y-GY)-GR)/CM;
+  if(d>=20&&d<=45){if(!lab.done[1]){lab.done[1]=true;toast('좋아요! 전등과 지구본을 알맞게 떨어뜨려 놓았어요.',true)}}
+}
+function placeLamp(x,y){
+  x=clamp(x,30,LW-30);y=clamp(y,40,TABLE-14);
+  if(lab.globe){const dx=x-lab.globe.x,dy=y-GY,d=Math.hypot(dx,dy),m=GR+40;if(d<m){x=lab.globe.x+dx/(d||1)*m;y=GY+dy/(d||1)*m;y=clamp(y,40,TABLE-14)}}
+  lab.lamp={x,y};
+}
+
+/* 준비물 끌어오기 */
+let ghost=null,dragTool=null;
+tools.forEach(t=>{
+  t.addEventListener('pointerdown',e=>{
+    if(t.classList.contains('used'))return;
+    e.preventDefault();dragTool=t.dataset.tool;
+    ghost=t.querySelector('svg').cloneNode(true);ghost.classList.add('ghost-drag');ghost.style.width='56px';ghost.style.height='56px';
+    document.body.appendChild(ghost);moveGhost(e);
+  });
+  t.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();keyboardDrop(t.dataset.tool)}});
+});
+function moveGhost(e){if(ghost){ghost.style.left=e.clientX+'px';ghost.style.top=e.clientY+'px'}}
+window.addEventListener('pointermove',moveGhost);
+window.addEventListener('pointerup',e=>{
+  if(!ghost)return;ghost.remove();ghost=null;const tool=dragTool;dragTool=null;
+  const r=cvLab.getBoundingClientRect();
+  if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom){return}
+  dropTool(tool,pos(cvLab,e,LW));
+});
+function keyboardDrop(tool){ /* 키보드 사용자를 위한 자동 배치 */
+  if(tool==='lamp')dropTool(tool,{x:lab.globe?lab.globe.x-310:290,y:GY});
+  else if(tool==='globe')dropTool(tool,{x:lab.lamp?lab.lamp.x+310:600,y:GY});
+  else if(tool==='observer'){if(lab.obsReady&&lab.globe){lab.rho=-KR.lon;dropTool(tool,{x:-1,y:-1,auto:true})}else dropTool(tool,{x:400,y:200})}
+  else if(tool==='pen'&&lab.obsAttached){lab.rho=-KR.lon+0.0001;dropTool(tool,{auto:true})}
+}
+function dropTool(tool,p){
+  if(tool==='lamp'){placeLamp(p.x,p.y);checkDistance()}
+  else if(tool==='globe'){
+    lab.globe={x:clamp(p.x,GR+40,LW-GR-30)};
+    if(lab.lamp)placeLamp(lab.lamp.x,lab.lamp.y);checkDistance();
+  }
+  else if(tool==='dome'){
+    if(!lab.obsReady)toast('투명 반구는 관측자·지평면 모형을 준비할 때 씌워요. 먼저 관측자 모형을 끌어 오세요.');
+  }
+  else if(tool==='observer'){
+    if(!lab.done[1]){toast('먼저 전등과 지구본을 30 cm 정도 떨어뜨려 놓아요.');return}
+    if(!lab.obsReady){openObsDialog();return}
+    /* 지구본의 우리나라에 붙이기 */
+    const kp=gproj(obsFrame().n);
+    if(p.auto||(kp[2]>0.15&&Math.hypot(p.x-kp[0],p.y-kp[1])<34)){
+      lab.obsAttached=true;lab.done[3]=true;
+      toast('우리나라에 붙였어요! 지평면 모형의 북쪽을 지구본의 북극 쪽으로 맞추었어요.',true);
+    }else toast(kp[2]>0.15?'조금 빗나갔어요. 깜빡이는 빨간 점(우리나라) 위에 정확히 놓아 주세요.':'우리나라가 지구본 뒤쪽에 있어요. 지구본을 돌려 앞으로 오게 한 뒤 놓아 주세요.');
+  }
+  else if(tool==='pen'){
+    if(!lab.obsAttached){toast('유성펜은 투명 반구에 표시할 때 써요. 먼저 관측 모형을 지구본에 붙여요.');return}
+    if(!lab.lampOn){toast('전등을 먼저 켜야 반구에 빛이 맺혀요.');return}
+    const {n}=obsFrame();const kp=gproj(n);
+    if(p.auto||Math.hypot(p.x-kp[0],p.y-kp[1])<60){lab.penReady=true;toast('유성펜 준비 완료! 이제 지구본을 서쪽→동쪽으로 돌려 보세요.',true)}
+    else toast('유성펜을 지구본 위 투명 반구 가까이에 놓아 주세요.');
+  }
+  setHint();
+}
+
+/* 관측자 모형 대화상자 */
+const dlg=document.getElementById('obsDlg'),cvObs=document.getElementById('cvObs');
+const ob={face:0,dome:false,drag:false}; /* face: 방위각(도), 0=북 */
+function openObsDialog(){ob.face=0;ob.dome=false;document.getElementById('obsMsg').textContent='';dlg.showModal();drawObs()}
+function drawObs(){
+  const W=300,H=300;const ctx=fit(cvObs,W,H);if(!ctx)return;
+  ctx.clearRect(0,0,W,H);const c=150,r=110;
+  ctx.fillStyle='#4f8f5e';ctx.beginPath();ctx.arc(c,c,r,0,7);ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(c,c-r);ctx.lineTo(c,c+r);ctx.moveTo(c-r,c);ctx.lineTo(c+r,c);ctx.stroke();
+  ctx.fillStyle='#fff';ctx.font='20px Jua, sans-serif';ctx.textAlign='center';
+  ctx.fillText('북',c,c-r+24);ctx.fillText('남',c,c+r-10);ctx.fillText('동',c+r-16,c+7);ctx.fillText('서',c-r+16,c+7);
+  const a=ob.face*D2R;const dx=Math.sin(a),dy=-Math.cos(a);
+  ctx.strokeStyle='#ffc24b';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(c,c);ctx.lineTo(c+dx*62,c+dy*62);ctx.stroke();
+  arrowHead(ctx,c+dx*62,c+dy*62,Math.atan2(dy,dx),12,'#ffc24b');
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(c,c,15,0,7);ctx.fill();
+  ctx.fillStyle='#1b2c5e';ctx.beginPath();ctx.arc(c+dx*7,c+dy*7,4,0,7);ctx.fill();
+  if(ob.dome){ctx.fillStyle='rgba(200,230,255,.28)';ctx.strokeStyle='#dff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(c,c,r+4,0,7);ctx.fill();ctx.stroke();
+    ctx.beginPath();ctx.ellipse(c-30,c-40,36,18,-0.6,0,7);ctx.fillStyle='rgba(255,255,255,.18)';ctx.fill()}
+  ctx.fillStyle='#ffc24b';ctx.font='15px "Noto Sans KR", sans-serif';
+  const names=['북','북동','동','남동','남','남서','서','북서'];
+  ctx.fillText('바라보는 방향: '+names[Math.round(ob.face/45)%8],c,H-6);
+}
+cvObs.addEventListener('pointerdown',e=>{ob.drag=true;cvObs.setPointerCapture(e.pointerId);obsMove(e)});
+cvObs.addEventListener('pointermove',e=>{if(ob.drag)obsMove(e)});
+cvObs.addEventListener('pointerup',()=>ob.drag=false);
+function obsMove(e){const p=pos(cvObs,e,300);let a=Math.atan2(p.x-150,-(p.y-150))*R2D;a=(a+360)%360;ob.face=Math.round(a/45)*45%360;drawObs()}
+/* 반구 끌어다 씌우기 */
+const domeMini=document.getElementById('domeMini');let miniGhost=null;
+domeMini.addEventListener('pointerdown',e=>{e.preventDefault();miniGhost=domeMini.querySelector('svg').cloneNode(true);miniGhost.classList.add('ghost-drag');miniGhost.style.width='56px';miniGhost.style.height='56px';miniGhost.style.zIndex=9999;dlg.appendChild(miniGhost);mg(e)});
+function mg(e){if(miniGhost){miniGhost.style.left=e.clientX+'px';miniGhost.style.top=e.clientY+'px'}}
+dlg.addEventListener('pointermove',mg);
+dlg.addEventListener('pointerup',e=>{if(!miniGhost)return;miniGhost.remove();miniGhost=null;const r=cvObs.getBoundingClientRect();
+  if(e.clientX>r.left&&e.clientX<r.right&&e.clientY>r.top&&e.clientY<r.bottom){ob.dome=true;domeMini.classList.add('used');drawObs()}});
+document.getElementById('obsCancel').onclick=()=>dlg.close();
+document.getElementById('obsOk').onclick=()=>{
+  const m=document.getElementById('obsMsg');
+  if(ob.face!==180){m.style.color='#ff8a7a';m.textContent='관측자 모형이 남쪽을 바라보도록 돌려 주세요.';return}
+  if(!ob.dome){m.style.color='#ff8a7a';m.textContent='투명 반구를 끌어다 지평면 모형 위에 씌워 주세요.';return}
+  lab.obsReady=true;lab.done[2]=true;dlg.close();domeMini.classList.remove('used');
+  toast('관측 모형 완성! 이제 지구본의 우리나라에 붙여요.',true);setHint();
+};
+
+/* 실험대 위 조작 */
+cvLab.addEventListener('pointerdown',e=>{
+  const p=pos(cvLab,e,LW);
+  if(lab.lamp&&Math.hypot(p.x-lab.lamp.x,p.y-lab.lamp.y)<30){lab.drag={k:'lamp'};cvLab.setPointerCapture(e.pointerId);return}
+  if(lab.globe&&Math.hypot(p.x-lab.globe.x,p.y-GY)<GR+8){lab.drag={k:'globe',x:p.x};lab.auto=false;updAuto();cvLab.setPointerCapture(e.pointerId)}
+});
+cvLab.addEventListener('pointermove',e=>{
+  if(!lab.drag)return;const p=pos(cvLab,e,LW);
+  if(lab.drag.k==='lamp'){placeLamp(p.x,p.y);checkDistance();lab.cur=null;setHintThrottled()}
+  else{const dx=p.x-lab.drag.x;lab.drag.x=p.x;rotateGlobe(dx/GR)}
+});
+const endLab=()=>{lab.drag=null};cvLab.addEventListener('pointerup',endLab);cvLab.addEventListener('pointercancel',endLab);
+let hintT=0;function setHintThrottled(){const n=performance.now();if(n-hintT>150){hintT=n;setHint()}}
+let wrongLab=0;
+function rotateGlobe(d){
+  if(d<0&&lab.penReady&&performance.now()-wrongLab>2500){wrongLab=performance.now();toast('반대 방향이에요! 지구는 서쪽에서 동쪽으로(앞면이 오른쪽으로 가도록) 돌아요. 이 방향일 때는 표시하지 않아요.')}
+  const steps=Math.max(1,Math.ceil(Math.abs(d)/(0.8*D2R)));
+  for(let i=0;i<steps;i++){lab.rho+=d/steps;if(d>0)record()}
+}
+function record(){
+  if(!(lab.penReady&&lab.lampOn&&lab.obsAttached))return;
+  const {alt,az}=lampLocal();
+  if(alt<=0){if(lab.cur)lab.cur.brk=true;return}
+  const key=lampKey();
+  if(!lab.cur||lab.cur.key!==key){
+    if(lab.tracks.length>=8)lab.tracks.shift();
+    lab.cur={key,color:COLORS[(lab.tracks.length+lab.heights.size)%COLORS.length],pts:[],brk:false};lab.tracks.push(lab.cur);
+  }
+  const t=lab.cur,last=t.pts[t.pts.length-1];
+  const v=vAltAz(alt,az);
+  const near=t.pts.some(q=>dot(v,q.v)>Math.cos(1.2*D2R)); /* 같은 경로를 다시 지나면 겹쳐 그리지 않음 */
+  if(!near){t.pts.push({v,brk:t.brk||!last});t.brk=false}
+  if(t.pts.length>12&&!lab.done[4]){lab.done[4]=true;setHint()}
+  lab.heights.add(key);
+  if(lab.heights.size>=2&&lab.tracks.filter(x=>x.pts.length>8).length>=2&&!lab.done[5]){lab.done[5]=true;toast('여러 높이에서 관찰했어요! 아래 결과를 비교해 보세요.',true);setHint()}
+}
+document.getElementById('lampBtn').onclick=()=>{lab.lampOn=!lab.lampOn;if(!lab.lampOn){lab.auto=false;updAuto()}setHint()};
+function updAuto(){document.querySelectorAll('.autoBtn').forEach(b=>{b.setAttribute('aria-pressed',lab.auto);b.textContent=lab.auto?'❚❚ 자동 회전 멈추기':'↻ 지구본 자동으로 돌리기 (서→동)'})}
+document.querySelectorAll('.autoBtn').forEach(b=>b.onclick=()=>{lab.auto=!lab.auto;updAuto()});
+document.getElementById('clearBtn').onclick=()=>{lab.tracks=[];lab.cur=null;lab.heights=new Set()};
+document.getElementById('resetBtn').onclick=()=>{Object.assign(lab,{lamp:null,globe:null,lampOn:false,obsReady:false,obsAttached:false,penReady:false,rho:-40*D2R,tracks:[],cur:null,auto:false,drag:null,heights:new Set(),done:{}});updAuto();setHint()};
+
+/* 실험대 그리기 */
+function drawLab(now){
+  const ctx=fit(cvLab,LW,LH);if(!ctx)return;
+  /* 방 배경 */
+  const bg=ctx.createLinearGradient(0,0,0,LH);bg.addColorStop(0,lab.lampOn?'#141b33':'#222b49');bg.addColorStop(1,lab.lampOn?'#0c1022':'#1a2240');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,LW,LH);
+  /* 실험대 */
+  ctx.fillStyle='#6b4b32';ctx.beginPath();ctx.moveTo(0,TABLE);ctx.lineTo(LW,TABLE);ctx.lineTo(LW,LH);ctx.lineTo(0,LH);ctx.fill();
+  ctx.fillStyle='#86603f';ctx.fillRect(0,TABLE,LW,10);
+  if(!lab.lamp&&!lab.globe){ctx.fillStyle='rgba(255,255,255,.35)';ctx.font='22px Jua, sans-serif';ctx.textAlign='center';ctx.fillText('여기 실험대에 준비물을 끌어다 놓으세요',LW/2,LH/2-20)}
+  /* 전등 빛 */
+  if(lab.lamp&&lab.lampOn){const g=ctx.createRadialGradient(lab.lamp.x,lab.lamp.y,4,lab.lamp.x,lab.lamp.y,320);g.addColorStop(0,'rgba(255,220,120,.45)');g.addColorStop(1,'rgba(255,220,120,0)');ctx.fillStyle=g;ctx.fillRect(0,0,LW,LH)}
+  /* 거리 표시 */
+  if(lab.lamp&&lab.globe){
+    const dx=lab.globe.x-lab.lamp.x,dy=GY-lab.lamp.y,d=Math.hypot(dx,dy);const ux=dx/d,uy=dy/d;
+    const sx=lab.lamp.x+ux*16,sy=lab.lamp.y+uy*16,ex=lab.globe.x-ux*GR,ey=GY-uy*GR;
+    const cm=Math.round((d-GR)/CM);const ok=cm>=20&&cm<=45;
+    if(!lab.obsAttached||lab.drag?.k==='lamp'){
+      ctx.setLineDash([6,5]);ctx.strokeStyle=ok?'rgba(126,224,138,.8)':'rgba(255,138,122,.85)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle=ok?'#7ee08a':'#ff8a7a';ctx.font='15px Jua, sans-serif';ctx.textAlign='center';ctx.fillText('약 '+cm+' cm',(sx+ex)/2,(sy+ey)/2-8);
+    }
+  }
+  if(lab.globe)drawGlobe(ctx,now);
+  if(lab.lamp)drawLamp(ctx);
+}
+function drawLamp(ctx){
+  const {x,y}=lab.lamp;
+  ctx.strokeStyle='#8890a8';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,y-18);ctx.stroke();
+  ctx.fillStyle='#777';ctx.fillRect(x-7,y-20,14,9);
+  if(lab.lampOn){const g=ctx.createRadialGradient(x,y,2,x,y,40);g.addColorStop(0,'#fff8d0');g.addColorStop(.4,'rgba(255,214,107,.9)');g.addColorStop(1,'rgba(255,214,107,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,40,0,7);ctx.fill()}
+  ctx.fillStyle=lab.lampOn?'#fff3b0':'#d9d3b8';ctx.strokeStyle='#c9a640';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,13,0,7);ctx.fill();ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,.75)';ctx.font='13px "Noto Sans KR", sans-serif';ctx.textAlign='center';ctx.fillText('전등',x,y+30);
+}
+function polyPts(ctx,pts,onlyFront){ /* 앞면만 이어 그리기 */
+  let pen=false;ctx.beginPath();
+  for(const p of pts){if(onlyFront&&p[2]<0){pen=false;continue}if(!pen){ctx.moveTo(p[0],p[1]);pen=true}else ctx.lineTo(p[0],p[1])}
+  ctx.stroke();
+}
+function drawGlobe(ctx,now){
+  const gx=lab.globe.x;
+  /* 받침대와 자전축 */
+  ctx.fillStyle='#555d74';ctx.beginPath();ctx.ellipse(gx,TABLE+2,46,10,0,0,7);ctx.fill();
+  ctx.strokeStyle='#8a92aa';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(gx,TABLE);ctx.lineTo(gx,gproj({x:0,y:-1.18,z:0})[1]);ctx.stroke();
+  const top=gproj({x:0,y:1.18,z:0});
+  /* 구 */
+  const Lh=lab.lamp?lampDir():{x:-.5,y:.5};const g=ctx.createRadialGradient(gx+Lh.x*GR*0.45,GY-Lh.y*GR*0.45,10,gx,GY,GR*1.1);g.addColorStop(0,'#6bd6e3');g.addColorStop(1,'#1f6f8f');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(gx,GY,GR,0,7);ctx.fill();
+  /* 경위선 */
+  ctx.strokeStyle='rgba(255,255,255,.32)';ctx.lineWidth=1;
+  for(const la of[-60,-30,0,30,60]){const pts=[];const c=Math.cos(la*D2R),s=Math.sin(la*D2R);
+    for(let i=0;i<=72;i++){const lo=i*5*D2R;pts.push(gproj({x:c*Math.sin(lo),y:s,z:c*Math.cos(lo)}))}
+    ctx.lineWidth=la===0?2:1;polyPts(ctx,pts,true)}
+  ctx.lineWidth=1;
+  for(let lon=0;lon<360;lon+=30){const lo=lon*D2R+lab.rho;const pts=[];
+    for(let i=-90;i<=90;i+=5){const la=i*D2R;pts.push(gproj({x:Math.cos(la)*Math.sin(lo),y:Math.sin(la),z:Math.cos(la)*Math.cos(lo)}))}
+    polyPts(ctx,pts,true)}
+  /* 낮·밤 */
+  if(lab.lamp){
+    const L=lampDir();const sx=L.x,sy=-L.y;
+    const sh=ctx.createLinearGradient(gx+sx*GR,GY+sy*GR,gx-sx*GR,GY-sy*GR);
+    const a=lab.lampOn?0.62:0.15;
+    sh.addColorStop(0,'rgba(5,8,25,0)');sh.addColorStop(.42,'rgba(5,8,25,0)');sh.addColorStop(.58,`rgba(5,8,25,${a})`);sh.addColorStop(1,`rgba(5,8,25,${a+.08})`);
+    ctx.fillStyle=sh;ctx.beginPath();ctx.arc(gx,GY,GR,0,7);ctx.fill();
+  }
+  ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(gx,GY,GR,0,7);ctx.stroke();
+  /* 북극 위 축 */
+  ctx.strokeStyle='#8a92aa';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(gx,gproj({x:0,y:1,z:0})[1]);ctx.lineTo(gx,top[1]);ctx.stroke();
+  ctx.fillStyle='#fff';ctx.font='12px "Noto Sans KR", sans-serif';ctx.textAlign='left';ctx.fillText('북극',gx+6,top[1]+4);
+  /* 서·동 안내 */
+  ctx.fillStyle='rgba(255,255,255,.7)';ctx.font='15px Jua, sans-serif';ctx.textAlign='center';
+  ctx.fillText('서  ←  지구본 앞면  →  동',gx,TABLE-8);
+  /* 우리나라 */
+  const F=obsFrame();const kp=gproj(F.n);
+  if(!lab.obsAttached&&kp[2]>0){
+    const pulse=lab.obsReady?(6+3*Math.sin(now/180)):4;
+    ctx.fillStyle='#ff4d5e';ctx.beginPath();ctx.arc(kp[0],kp[1],4.5,0,7);ctx.fill();
+    if(lab.obsReady){ctx.strokeStyle='#ff4d5e';ctx.lineWidth=2;ctx.beginPath();ctx.arc(kp[0],kp[1],pulse+6,0,7);ctx.stroke()}
+    ctx.fillStyle='#fff';ctx.font='12px "Noto Sans KR", sans-serif';ctx.textAlign='left';ctx.fillText('우리나라',kp[0]+9,kp[1]-6);
+  }
+  if(lab.obsAttached)drawObserverOnGlobe(ctx,F,kp);
+}
+function drawObserverOnGlobe(ctx,F,kp){
+  const {n,N,E}=F;const dr=DR;
+  const front=kp[2]>-0.05;
+  if(!front){ctx.fillStyle='rgba(255,255,255,.6)';ctx.font='13px "Noto Sans KR", sans-serif';ctx.textAlign='center';ctx.fillText('관측자가 지구본 뒤쪽에 있어요',lab.globe.x,GY+GR+22);return}
+  const at=(alt,az)=>{const v=vAltAz(alt,az);return gproj(add(n,mul(add(add(mul(E,v.x),mul(N,v.y)),mul(n,v.z)),dr)))};
+  /* 지평면 */
+  const ring=[];for(let i=0;i<=48;i++)ring.push(at(0,i*7.5*D2R));
+  ctx.fillStyle='rgba(94,163,111,.9)';ctx.beginPath();ring.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.fill();
+  ctx.fillStyle='#fff';ctx.font='11px Jua, sans-serif';ctx.textAlign='center';
+  for(const [az,t] of[[0,'북'],[90,'동'],[180,'남'],[270,'서']]){const p=gproj(add(n,mul(add(mul(E,Math.sin(az*D2R)),mul(N,Math.cos(az*D2R))),dr*1.25)));ctx.fillText(t,p[0],p[1]+4)}
+  /* 관측자 (남쪽을 봄) */
+  const foot=gproj(n),head=gproj(add(n,mul(n,0.14))),nose=gproj(add(add(n,mul(n,0.14)),mul(N,-0.05)));
+  ctx.strokeStyle='#fff';ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(foot[0],foot[1]);ctx.lineTo(head[0],head[1]);ctx.stroke();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(head[0],head[1],3.5,0,7);ctx.fill();
+  ctx.fillStyle='#ffc24b';ctx.beginPath();ctx.arc(nose[0],nose[1],2,0,7);ctx.fill();
+  /* 투명 반구 */
+  ctx.strokeStyle='rgba(220,240,255,.6)';ctx.lineWidth=1;
+  for(const az of[0,45,90,135]){const pts=[];for(let b=0;b<=180;b+=6){const a=az*D2R;const bb=b*D2R;pts.push(gproj(add(n,mul(add(add(mul(E,Math.cos(bb)*Math.sin(a)),mul(N,Math.cos(bb)*Math.cos(a))),mul(n,Math.sin(bb))),dr))))}polyPts(ctx,pts,false)}
+  for(const al of[30,60]){const pts=[];for(let i=0;i<=48;i++)pts.push(at(al*D2R,i*7.5*D2R));polyPts(ctx,pts,false)}
+  /* 표시한 점 */
+  for(const t of lab.tracks){ctx.fillStyle=t.color;for(const p of t.pts){const q=gproj(add(n,mul(add(add(mul(E,p.v.x),mul(N,p.v.y)),mul(n,p.v.z)),dr)));ctx.beginPath();ctx.arc(q[0],q[1],2.4,0,7);ctx.fill()}}
+  /* 빛이 맺힌 곳 */
+  if(lab.lampOn&&lab.lamp){const L=lampDir();if(dot(L,n)>0){const sp=gproj(add(n,mul(L,dr)));
+    ctx.strokeStyle='rgba(255,230,140,.55)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(lab.lamp.x,lab.lamp.y);ctx.lineTo(sp[0],sp[1]);ctx.stroke();
+    const g=ctx.createRadialGradient(sp[0],sp[1],0,sp[0],sp[1],12);g.addColorStop(0,'#fffbe0');g.addColorStop(1,'rgba(255,214,107,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(sp[0],sp[1],12,0,7);ctx.fill();
+    if(lab.penReady){ctx.fillStyle='#ff4d6a';ctx.save();ctx.translate(sp[0]+8,sp[1]-8);ctx.rotate(-0.6);ctx.fillRect(0,-3,22,6);ctx.restore()}
+  }}
+}
+
+/* 결과 그림: 반구 위에서 본 모습 */
+function drawDome(cv,tracks){
+  const W=300,H=300;const ctx=fit(cv,W,H);if(!ctx)return;
+  const c=150,R=118;ctx.fillStyle='#f6f8ff';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#cfe6d6';ctx.beginPath();ctx.arc(c,c,R,0,7);ctx.fill();
+  ctx.strokeStyle='#9bb0d8';ctx.lineWidth=1;for(const a of[30,60]){ctx.beginPath();ctx.arc(c,c,R*(90-a)/90,0,7);ctx.stroke()}
+  ctx.beginPath();ctx.moveTo(c-R,c);ctx.lineTo(c+R,c);ctx.moveTo(c,c-R);ctx.lineTo(c,c+R);ctx.stroke();
+  ctx.fillStyle='#1b2550';ctx.font='17px Jua, sans-serif';ctx.textAlign='center';
+  ctx.fillText('북',c,c-R-6+2);ctx.fillText('남',c,c+R+16);ctx.fillText('동',c+R+12,c+6);ctx.fillText('서',c-R-12,c+6);
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(c,c,6,0,7);ctx.fill();ctx.fillStyle='#ffb020';ctx.beginPath();ctx.arc(c,c+6,2.5,0,7);ctx.fill();
+  const P=v=>{const alt=Math.asin(clamp(v.z,-1,1)),az=Math.atan2(v.x,v.y),r=R*(90-alt*R2D)/90;return[c+r*Math.sin(az),c-r*Math.cos(az)]};
+  drawPath(ctx,tracks,v=>v.z>=0?P(v):null,2.4);
+  if(!tracks.length){ctx.fillStyle='#5a6690';ctx.font='13px "Noto Sans KR", sans-serif';ctx.fillText('아직 표시한 빛이 없어요',c,H-6)}
+}
+function drawPath(ctx,tracks,proj,lw){
+  for(const t of tracks){
+    ctx.strokeStyle=t.color;ctx.lineWidth=lw;ctx.lineJoin='round';ctx.lineCap='round';
+    let prev=null,dist=0,seg=[];const segs=[];
+    for(const p of t.pts){const q=proj(p.v);if(!q||p.brk||(prev&&Math.hypot(q[0]-prev[0],q[1]-prev[1])>60)){if(seg.length)segs.push(seg);seg=[]}if(q)seg.push(q);prev=q}
+    if(seg.length)segs.push(seg);
+    for(const s of segs){if(s.length<2)continue;ctx.beginPath();s.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.stroke();
+      dist=0;for(let i=1;i<s.length;i++){const d=Math.hypot(s[i][0]-s[i-1][0],s[i][1]-s[i-1][1]);dist+=d;if(dist>55){dist=0;arrowHead(ctx,s[i][0],s[i][1],Math.atan2(s[i][1]-s[i-1][1],s[i][0]-s[i-1][0]),lw*3.4,t.color)}}}
+  }
+}
+/* 결과 그림: 방향별 */
+function drawDirPanel(cv,dir,tracks){
+  const W=260,H=220;const ctx=fit(cv,W,H);if(!ctx)return;
+  ctx.fillStyle='#f6f8ff';ctx.fillRect(0,0,W,H);
+  const cam=camFor(dir,W,H);
+  /* 지평선 */
+  const F=FRAMES[dir];const hz=[];for(let a=-110;a<=110;a+=3){const q=cam.p(vAltAz(0,(F.az+a)*D2R));if(q)hz.push(q)}
+  ctx.fillStyle='#cfe6d6';ctx.beginPath();hz.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.lineTo(W+20,H+20);ctx.lineTo(-20,H+20);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#5c8a6b';ctx.lineWidth=1.5;ctx.beginPath();hz.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.stroke();
+  ctx.save();ctx.beginPath();hz.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.lineTo(W+20,-20);ctx.lineTo(-20,-20);ctx.closePath();ctx.clip();
+  drawPath(ctx,tracks,v=>v.z>=-0.01?cam.p(v):null,2.4);
+  if(dir==='N'){const q=cam.p(eqToHor(0,89.26*D2R));if(q){ctx.fillStyle='#1b2550';ctx.beginPath();ctx.arc(q[0],q[1],3,0,7);ctx.fill();ctx.font='11px "Noto Sans KR", sans-serif';ctx.textAlign='left';ctx.fillText('북극성 방향',q[0]+6,q[1]-4)}}
+  ctx.restore();
+  ctx.fillStyle='#2e4a38';ctx.font='12px "Noto Sans KR", sans-serif';ctx.textAlign='center';
+  const side={E:['북','남'],S:['동','서'],W:['남','북'],N:['서','동']}[dir];
+  ctx.fillText('← '+side[0],26,H-8);ctx.fillText(side[1]+' →',W-26,H-8);
+}
+function labTracks(){return lab.tracks.filter(t=>t.pts.length>1)}
+
+/* ---------- 자세히 보기: 반구 확대 / 반구 속 관측자 시점 ---------- */
+const cvView=document.getElementById('cvView');
+const VW=900,VH=560;
+const V={mode:'zoom',camAz:0,povAz:180,povAlt:28,drag:null};
+const VDESC={
+  zoom:['반구 확대 보기','지구본을 위에서 비스듬히 가까이 내려다본 모습이에요. 전등은 제자리에 있고, 지구본이 자전하면서 우리나라에 붙인 관측 모형이 함께 움직여요. 노란 선은 전등 빛이 반구로 들어오는 길이에요. 화면을 끌면 둘러볼 수 있어요.'],
+  pov:['반구 속 관측자 시점','투명 반구 한가운데 서 있는 관측자의 눈으로 본 모습이에요. 유성펜으로 그린 선과 지금 전등의 위치를 함께 볼 수 있어요. 방향 버튼을 누르거나 화면을 끌어 고개를 돌려 보세요.']};
+function setViewMode(m){V.mode=m;document.querySelectorAll('#viewTabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===m));
+  document.getElementById('viewTitle').textContent=VDESC[m][0];document.getElementById('viewDesc').textContent=VDESC[m][1];
+  document.getElementById('povDirWrap').style.display=m==='pov'?'block':'none'}
+document.querySelectorAll('#viewTabs button').forEach(b=>b.onclick=()=>setViewMode(b.dataset.v));
+const POVDIR={E:[90,24],S:[180,28],W:[270,24],N:[0,37]};
+function setPovDir(d){V.povAz=POVDIR[d][0];V.povAlt=POVDIR[d][1];document.querySelectorAll('#povDirs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.d===d))}
+document.querySelectorAll('#povDirs button').forEach(b=>b.onclick=()=>setPovDir(b.dataset.d));
+setViewMode('zoom');
+cvView.addEventListener('pointerdown',e=>{V.drag=pos(cvView,e,VW);cvView.setPointerCapture(e.pointerId)});
+cvView.addEventListener('pointermove',e=>{if(!V.drag)return;const p=pos(cvView,e,VW),dx=p.x-V.drag.x,dy=p.y-V.drag.y;V.drag=p;
+  if(V.mode==='zoom')V.camAz=(V.camAz-dx*0.35+360)%360;
+  else{V.povAz=(V.povAz-dx*0.18+360)%360;V.povAlt=clamp(V.povAlt+dy*0.15,5,75);document.querySelectorAll('#povDirs button').forEach(b=>b.setAttribute('aria-pressed','false'))}});
+const endV=()=>V.drag=null;cvView.addEventListener('pointerup',endV);cvView.addEventListener('pointercancel',endV);
+/* 누르고 있으면 회전 */
+const holdBtn=document.getElementById('holdBtn');
+const holdOn=e=>{if(holdBtn.disabled)return;e&&e.preventDefault();lab.hold=true;lab.auto=false;updAuto();holdBtn.classList.add('on')};
+const holdOff=()=>{lab.hold=false;holdBtn.classList.remove('on')};
+holdBtn.addEventListener('pointerdown',e=>{holdOn(e);holdBtn.setPointerCapture(e.pointerId)});
+['pointerup','pointercancel','lostpointercapture'].forEach(t=>holdBtn.addEventListener(t,holdOff));
+holdBtn.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){holdOn(e)}});
+holdBtn.addEventListener('keyup',holdOff);holdBtn.addEventListener('blur',holdOff);
+
+function lampLocalAt(rho){const keep=lab.rho;lab.rho=rho;const r=lampLocal();lab.rho=keep;return r}
+function viewMsg(ctx,t1,t2){ctx.fillStyle='#0b1330';ctx.fillRect(0,0,VW,VH);ctx.fillStyle='rgba(255,255,255,.8)';ctx.font='24px Jua, sans-serif';ctx.textAlign='center';ctx.fillText(t1,VW/2,VH/2-10);
+  ctx.fillStyle='rgba(255,255,255,.55)';ctx.font='16px "Noto Sans KR", sans-serif';ctx.fillText(t2,VW/2,VH/2+22)}
+function drawView(){
+  const ctx=fit(cvView,VW,VH);if(!ctx)return;
+  if(!lab.obsAttached){viewMsg(ctx,'아직 관측 모형이 지구본에 붙지 않았어요','실험 순서 ①~③을 마치면 여기서 반구를 크게 볼 수 있어요.');return}
+  if(V.mode==='zoom')drawZoom(ctx);else drawPOV(ctx);
+}
+function lampState(){
+  const on=lab.lampOn&&!!lab.lamp&&document.getElementById('vLamp').checked;
+  const cur=lampLocal();const nxt=lampLocalAt(lab.rho+4*D2R);
+  return{on,v:vAltAz(cur.alt,cur.az),vn:vAltAz(nxt.alt,nxt.az),alt:cur.alt};
+}
+/* 반구 확대 보기: 전등은 제자리, 지구본과 함께 관측 모형이 돈다 (실험실 기준 좌표, 위에서 비스듬히 내려다봄) */
+function drawZoom(ctx){
+  const a=V.camAz*D2R,e=55*D2R;
+  const c={x:Math.cos(e)*Math.sin(a),y:Math.sin(e),z:Math.cos(e)*Math.cos(a)};
+  const r=norm(cross({x:0,y:1,z:0},c)),u=cross(c,r);
+  const S=195,X0=VW/2+40,Y0=VH*0.55,DZ=0.44;
+  const P=v=>[X0+S*dot(v,r),Y0-S*dot(v,u),dot(v,c)];
+  const hid=q=>q[2]<0&&Math.hypot(q[0]-X0,q[1]-Y0)<S;
+  const bg=ctx.createLinearGradient(0,0,0,VH);bg.addColorStop(0,lab.lampOn?'#121a33':'#222b49');bg.addColorStop(1,'#0b1022');ctx.fillStyle=bg;ctx.fillRect(0,0,VW,VH);
+  const show=lab.lampOn&&!!lab.lamp&&document.getElementById('vLamp').checked;
+  const Lw=lab.lamp?lampDir():{x:-1,y:0,z:0};
+  const LP=P(mul(Lw,2.15));
+  const drawBulb=()=>{if(!show)return;const g=ctx.createRadialGradient(LP[0],LP[1],2,LP[0],LP[1],70);g.addColorStop(0,'#fff8d0');g.addColorStop(.35,'rgba(255,214,107,.85)');g.addColorStop(1,'rgba(255,214,107,0)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(LP[0],LP[1],70,0,7);ctx.fill();ctx.fillStyle='#fff3b0';ctx.beginPath();ctx.arc(LP[0],LP[1],16,0,7);ctx.fill();
+    ctx.fillStyle='#ffe28c';ctx.font='17px Jua, sans-serif';ctx.textAlign='center';ctx.fillText('전등 (제자리)',LP[0],LP[1]-26)};
+  const bulbBehind=hid(LP)||LP[2]<-0.9;
+  if(bulbBehind)drawBulb();
+  /* 지구본 */
+  const lv={x:dot(Lw,r),y:-dot(Lw,u)};
+  const gg=ctx.createRadialGradient(X0+lv.x*S*0.45,Y0+lv.y*S*0.45,15,X0,Y0,S*1.1);gg.addColorStop(0,'#6bd6e3');gg.addColorStop(1,'#1d5f7c');
+  ctx.fillStyle=gg;ctx.beginPath();ctx.arc(X0,Y0,S,0,7);ctx.fill();
+  const curve=(pts,frontOnly=true)=>{ctx.beginPath();let pen=false;for(const q of pts){if(frontOnly&&q[2]<0){pen=false;continue}if(!pen){ctx.moveTo(q[0],q[1]);pen=true}else ctx.lineTo(q[0],q[1])}ctx.stroke()};
+  ctx.strokeStyle='rgba(255,255,255,.3)';ctx.lineWidth=1;
+  for(const la of[-30,0,30,60]){const cl=Math.cos(la*D2R),sl=Math.sin(la*D2R),pts=[];for(let i=0;i<=72;i++){const lo=i*5*D2R;pts.push(P({x:cl*Math.sin(lo),y:sl,z:cl*Math.cos(lo)}))}ctx.lineWidth=la===0?2:1;curve(pts)}
+  ctx.lineWidth=1;
+  for(let lon=0;lon<360;lon+=30){const lo=lon*D2R+lab.rho,pts=[];for(let i=-90;i<=90;i+=5){const la=i*D2R;pts.push(P({x:Math.cos(la)*Math.sin(lo),y:Math.sin(la),z:Math.cos(la)*Math.cos(lo)}))}curve(pts)}
+  /* 관측 모형이 지나가는 길 (북위 37°) */
+  {const cl=Math.cos(LAT),sl=Math.sin(LAT),pts=[];for(let i=0;i<=120;i++){const lo=i*3*D2R;pts.push(P({x:cl*Math.sin(lo),y:sl,z:cl*Math.cos(lo)}))}
+   ctx.setLineDash([6,6]);ctx.strokeStyle='rgba(255,120,140,.55)';ctx.lineWidth=2;curve(pts);ctx.setLineDash([])}
+  /* 밤 쪽 그늘 */
+  const ll=Math.hypot(lv.x,lv.y);
+  ctx.save();ctx.beginPath();ctx.arc(X0,Y0,S,0,7);ctx.clip();
+  if(ll>0.12){const ux=lv.x/ll,uy=lv.y/ll,k=dot(Lw,c);
+    const sh=ctx.createLinearGradient(X0+ux*S,Y0+uy*S,X0-ux*S,Y0-uy*S);const al=lab.lampOn?0.6:0.15;const m=clamp(0.5-k*0.5,0.1,0.9);
+    sh.addColorStop(0,'rgba(5,8,25,0)');sh.addColorStop(Math.max(0,m-0.08),'rgba(5,8,25,0)');sh.addColorStop(Math.min(1,m+0.08),`rgba(5,8,25,${al})`);sh.addColorStop(1,`rgba(5,8,25,${al+.08})`);
+    ctx.fillStyle=sh;ctx.fillRect(X0-S,Y0-S,2*S,2*S)}
+  else if(dot(Lw,c)<0){ctx.fillStyle=`rgba(5,8,25,${lab.lampOn?0.6:0.15})`;ctx.fillRect(X0-S,Y0-S,2*S,2*S)}
+  ctx.restore();
+  ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(X0,Y0,S,0,7);ctx.stroke();
+  /* 자전축과 자전 방향 */
+  const p1=P({x:0,y:1,z:0}),p2=P({x:0,y:1.32,z:0});
+  ctx.strokeStyle='#8a92aa';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(p1[0],p1[1]);ctx.lineTo(p2[0],p2[1]);ctx.stroke();
+  ctx.fillStyle='#fff';ctx.font='14px "Noto Sans KR", sans-serif';ctx.textAlign='left';ctx.fillText('북극',p2[0]+8,p2[1]+4);
+  {const pts=[];const cl=Math.cos(78*D2R)*1.25,sl=Math.sin(78*D2R)*1.05;for(let d=-70;d<=70;d+=5){const lo=a+d*D2R;pts.push(P({x:cl*Math.sin(lo),y:sl,z:cl*Math.cos(lo)}))}
+   ctx.strokeStyle='#9ff0ff';ctx.lineWidth=3.5;curve(pts,false);const q=pts[pts.length-1],q0=pts[pts.length-2];arrowHead(ctx,q[0],q[1],Math.atan2(q[1]-q0[1],q[0]-q0[0]),10,'#9ff0ff');
+   ctx.fillStyle='#9ff0ff';ctx.font='16px Jua, sans-serif';ctx.textAlign='left';ctx.fillText('자전 방향(서→동)',q[0]+12,q[1]+4)}
+  /* 관측 모형 */
+  const F=obsFrame(),{n,N,E}=F;
+  const at=v=>add(n,mul(add(add(mul(E,v.x),mul(N,v.y)),mul(n,v.z)),DZ));
+  const cen=dot(n,c);const isFront=p=>dot(p,c)>=cen-0.02;
+  const ring=[];for(let i=0;i<=72;i++)ring.push(P(at(vAltAz(0,i*5*D2R))));
+  ctx.fillStyle='rgba(94,163,111,.92)';ctx.beginPath();ring.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.fill();ctx.strokeStyle='#3d7a4c';ctx.lineWidth=2;ctx.stroke();
+  for(const [az,t] of[[0,'북'],[90,'동'],[180,'남'],[270,'서']]){const q=P(at(mul(vAltAz(0,az*D2R),1.22)));ctx.fillStyle='#fff';ctx.font='18px Jua, sans-serif';ctx.textAlign='center';ctx.fillText(t,q[0],q[1]+6)}
+  const domeLines=[];
+  for(const az of[0,45,90,135]){const pts=[];for(let b=0;b<=180;b+=4){const bb=b*D2R,aa=az*D2R;const w=at({x:Math.cos(bb)*Math.sin(aa),y:Math.cos(bb)*Math.cos(aa),z:Math.sin(bb)});pts.push([...P(w),isFront(w)])}domeLines.push(pts)}
+  for(const al of[30,60]){const pts=[];for(let i=0;i<=72;i++){const w=at(vAltAz(al*D2R,i*5*D2R));pts.push([...P(w),isFront(w)])}domeLines.push(pts)}
+  const dl=front=>{for(const pts of domeLines){ctx.beginPath();let pen=false;for(let i=1;i<pts.length;i++){if((pts[i][3]&&pts[i-1][3])===front){if(!pen){ctx.moveTo(pts[i-1][0],pts[i-1][1]);pen=true}ctx.lineTo(pts[i][0],pts[i][1])}else pen=false}ctx.stroke()}};
+  const marks=document.getElementById('vMarks').checked?labTracks():[];
+  ctx.strokeStyle='rgba(210,235,255,.3)';ctx.lineWidth=1.5;dl(false);
+  ctx.globalAlpha=0.45;drawPath(ctx,marks,v=>{if(v.z<0)return null;const w=at(v);return isFront(w)?null:P(w)},3.2);ctx.globalAlpha=1;
+  /* 북극성 방향 */
+  const a0=P(n),a1=P(add(n,{x:0,y:0.95,z:0}));
+  ctx.setLineDash([6,6]);ctx.strokeStyle='rgba(255,255,255,.75)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(a0[0],a0[1]);ctx.lineTo(a1[0],a1[1]);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,255,255,.85)';ctx.font='13px "Noto Sans KR", sans-serif';ctx.textAlign='left';ctx.fillText('북극성 방향',a1[0]+6,a1[1]);
+  /* 관측자 (남쪽을 바라봄) */
+  const ft=P(n),hd=P(add(n,mul(n,DZ*0.38))),ns=P(add(add(n,mul(n,DZ*0.38)),mul(N,-DZ*0.12)));
+  ctx.strokeStyle='#fff';ctx.lineWidth=5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(ft[0],ft[1]);ctx.lineTo(hd[0],hd[1]);ctx.stroke();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(hd[0],hd[1],9,0,7);ctx.fill();ctx.fillStyle='#ffb020';ctx.beginPath();ctx.arc(ns[0],ns[1],3.5,0,7);ctx.fill();
+  ctx.strokeStyle='rgba(210,235,255,.65)';ctx.lineWidth=1.5;dl(true);
+  drawPath(ctx,marks,v=>{if(v.z<0)return null;const w=at(v);return isFront(w)?P(w):null},4.2);
+  /* 전등 빛 */
+  const up=dot(Lw,n)>0;
+  if(show&&up){
+    const sp=P(add(n,mul(Lw,DZ)));
+    ctx.strokeStyle='rgba(255,230,140,.75)';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(LP[0],LP[1]);ctx.lineTo(sp[0],sp[1]);ctx.stroke();
+    ctx.setLineDash([4,6]);ctx.strokeStyle='rgba(255,230,140,.5)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(sp[0],sp[1]);ctx.lineTo(hd[0],hd[1]);ctx.stroke();ctx.setLineDash([]);
+    const g=ctx.createRadialGradient(sp[0],sp[1],0,sp[0],sp[1],20);g.addColorStop(0,'#fffbe0');g.addColorStop(1,'rgba(255,214,107,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(sp[0],sp[1],20,0,7);ctx.fill();
+    if(lab.penReady){ctx.save();ctx.translate(sp[0]+10,sp[1]-10);ctx.rotate(-0.7);ctx.fillStyle='#ff4d6a';ctx.fillRect(0,-4,34,8);ctx.fillStyle='#333';ctx.beginPath();ctx.moveTo(0,-4);ctx.lineTo(-8,0);ctx.lineTo(0,4);ctx.fill();ctx.restore()}
+    ctx.fillStyle='#ffe28c';ctx.font='14px "Noto Sans KR", sans-serif';ctx.textAlign='left';ctx.fillText('빛이 맺힌 곳',sp[0]+14,sp[1]+20);
+  }
+  if(!bulbBehind)drawBulb();
+  /* 안내 글 */
+  const night=lab.lampOn&&!up;
+  ctx.fillStyle='rgba(5,10,30,.6)';ctx.fillRect(12,12,420,night?84:60);
+  ctx.fillStyle='#fff';ctx.font='19px Jua, sans-serif';ctx.textAlign='left';ctx.fillText('전등은 제자리, 지구본과 함께 관측 모형이 돌아요',22,38);
+  ctx.fillStyle='#cfe0ff';ctx.font='14px "Noto Sans KR", sans-serif';ctx.fillText('빨간 점선: 관측 모형이 지나가는 길 · 화면을 끌어 둘러보기',22,60);
+  if(night){ctx.fillStyle='#ffb3a8';ctx.fillText('관측 모형이 지구본의 밤 쪽에 있어 빛이 반구에 닿지 않아요',22,82)}
+}
+/* 반구 속 관측자의 눈으로 본 모습 */
+function drawPOV(ctx){
+  const cam=makeCam(V.povAz,V.povAlt,110,VW,VW/2,VH*0.5);
+  const L=lampState();const show=L.on&&L.v.z>0;
+  const bg=ctx.createLinearGradient(0,0,0,VH);bg.addColorStop(0,lab.lampOn?'#10172e':'#1d2644');bg.addColorStop(1,lab.lampOn?'#1a2242':'#2a3456');ctx.fillStyle=bg;ctx.fillRect(0,0,VW,VH);
+  const lq=show?cam.p(L.v):null;
+  if(lq){const g=ctx.createRadialGradient(lq[0],lq[1],5,lq[0],lq[1],260);g.addColorStop(0,'rgba(255,220,130,.45)');g.addColorStop(1,'rgba(255,220,130,0)');ctx.fillStyle=g;ctx.fillRect(0,0,VW,VH)}
+  /* 투명 반구 */
+  ctx.fillStyle='rgba(190,220,255,.07)';ctx.fillRect(0,0,VW,VH);
+  const line=(pts)=>{ctx.beginPath();let pen=false,prev=null;for(const q of pts){if(!q||(prev&&Math.hypot(q[0]-prev[0],q[1]-prev[1])>200)){pen=false;prev=q;continue}if(!pen){ctx.moveTo(q[0],q[1]);pen=true}else ctx.lineTo(q[0],q[1]);prev=q}ctx.stroke()};
+  ctx.strokeStyle='rgba(210,235,255,.35)';ctx.lineWidth=1.5;
+  for(const al of[30,60]){const pts=[];for(let a=0;a<=360;a+=3)pts.push(cam.p(vAltAz(al*D2R,a*D2R)));line(pts)}
+  for(let az=0;az<360;az+=45){const pts=[];for(let al=0;al<=90;al+=3)pts.push(cam.p(vAltAz(al*D2R,az*D2R)));line(pts)}
+  /* 고도 숫자 */
+  ctx.fillStyle='rgba(210,235,255,.55)';ctx.font='12px "Noto Sans KR", sans-serif';ctx.textAlign='left';
+  for(const al of[30,60]){const q=cam.p(vAltAz(al*D2R,V.povAz*D2R));if(q)ctx.fillText(al+'°',q[0]+4,q[1]-4)}
+  /* 유성펜 선 */
+  if(document.getElementById('vMarks').checked)drawPath(ctx,labTracks(),v=>v.z>=0?cam.p(v):null,5);
+  /* 전등 */
+  if(lq){
+    const n=cam.p(L.vn);
+    if(n){const ang=Math.atan2(n[1]-lq[1],n[0]-lq[0]);const sx=lq[0]+Math.cos(ang)*26,sy=lq[1]+Math.sin(ang)*26,ex=sx+Math.cos(ang)*48,ey=sy+Math.sin(ang)*48;
+      ctx.strokeStyle='#ffe28c';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();arrowHead(ctx,ex,ey,ang,12,'#ffe28c')}
+    const g=ctx.createRadialGradient(lq[0],lq[1],2,lq[0],lq[1],60);g.addColorStop(0,'#fffbe8');g.addColorStop(.3,'rgba(255,214,107,.9)');g.addColorStop(1,'rgba(255,214,107,0)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(lq[0],lq[1],60,0,7);ctx.fill();ctx.fillStyle='#fff9dc';ctx.beginPath();ctx.arc(lq[0],lq[1],16,0,7);ctx.fill();
+    ctx.fillStyle='#ffe9a8';ctx.font='17px Jua, sans-serif';ctx.textAlign='center';ctx.fillText('전등',lq[0],lq[1]+40);
+  }
+  /* 지평면 모형 (바닥) */
+  const hz=[];for(let a=-120;a<=120;a+=2){const q=cam.p(vAltAz(0,(V.povAz+a)*D2R));if(q)hz.push(q)}
+  const gd=ctx.createLinearGradient(0,VH*0.55,0,VH);gd.addColorStop(0,'#4f8f5e');gd.addColorStop(1,'#2c5a3a');
+  ctx.fillStyle=gd;ctx.beginPath();hz.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.lineTo(VW+40,VH+40);ctx.lineTo(-40,VH+40);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(220,240,255,.7)';ctx.lineWidth=2.5;ctx.beginPath();hz.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.stroke();
+  const names=['북','북동','동','남동','남','남서','서','북서'];
+  for(let k=0;k<8;k++){const q=cam.p(vAltAz(0,k*45*D2R));if(!q||q[0]<10||q[0]>VW-10)continue;const main=k%2===0;
+    ctx.fillStyle=main?'#fff':'rgba(255,255,255,.65)';ctx.font=(main?'26px':'16px')+' Jua, sans-serif';ctx.textAlign='center';ctx.fillText(names[k],q[0],q[1]+(main?32:24))}
+  /* 안내 */
+  const az=((V.povAz%360)+360)%360;const nm=names[Math.round(az/45)%8];
+  ctx.fillStyle='rgba(5,10,30,.6)';ctx.fillRect(12,12,400,62);
+  ctx.fillStyle='#fff';ctx.font='19px Jua, sans-serif';ctx.textAlign='left';ctx.fillText(`반구 속 관측자가 ${nm}쪽을 바라본 모습`,22,38);
+  ctx.fillStyle='#cfe0ff';ctx.font='14px "Noto Sans KR", sans-serif';
+  let st='';if(!lab.lampOn)st='전등이 꺼져 있어요';else if(L.v.z<=0)st='전등이 지평선 아래에 있어 보이지 않아요';else if(!lq)st='전등이 다른 쪽 하늘에 있어요. 고개를 돌려 찾아보세요';else st='노란 화살표: 전등이 움직이는 방향';
+  ctx.fillText(st,22,62);
+  if(lab.lampOn&&L.v.z>0&&!lq){ /* 화면 밖 전등 위치 힌트 */
+    const dAz=((Math.atan2(L.v.x,L.v.y)*R2D-az+540)%360)-180;const right=dAz>0;
+    ctx.fillStyle='#ffe28c';ctx.font='18px Jua, sans-serif';ctx.textAlign=right?'right':'left';
+    ctx.fillText(right?'전등은 이쪽 →':'← 전등은 이쪽',right?VW-20:20,VH*0.42)}
+}
+
+/* ===================================================
+   3단계: 하늘 시뮬레이션
+   =================================================== */
+const S3={T:3,play:false,dir:'E',trailFrom:null};
+const cvSky=document.getElementById('cvSky'),cvS3=document.getElementById('cvSpace3');
+const SKYW=820,SKYH=520;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const mixc=(c1,c2,t)=>`rgb(${Math.round(lerp(c1[0],c2[0],t))},${Math.round(lerp(c1[1],c2[1],t))},${Math.round(lerp(c1[2],c2[2],t))})`;
+function horOf(s,T){const H=lstOf(T)*15*D2R-s.ra;return eqToHor(H,s.dec)}
+function drawSky(T){
+  const W=SKYW,H=SKYH;const ctx=fit(cvSky,W,H);if(!ctx)return;
+  const dir=S3.dir,cam=camFor(dir,W,H),F=FRAMES[dir];
+  const opt={trail:document.getElementById('trail3').checked,arrow:document.getElementById('arrow3').checked,lines:document.getElementById('lines3').checked,day:document.getElementById('day3').checked};
+  const sunV=eqToHor((T-12)*15*D2R,0);const sunAlt=Math.asin(sunV.z)*R2D;
+  const day=clamp((sunAlt+12)/17,0,1);
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,mixc([6,10,30],[46,112,196],day));g.addColorStop(1,mixc([18,30,66],sunAlt>-8&&sunAlt<6?[240,170,110]:[150,200,240],day));
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  const vis=opt.day?1:clamp((-sunAlt-1)/9,0,1);
+  /* 고도선 */
+  ctx.strokeStyle=`rgba(255,255,255,${0.08+0.05*(1-day)})`;ctx.lineWidth=1;ctx.setLineDash([3,6]);
+  for(const al of[30,60]){const pts=[];for(let a=-120;a<=120;a+=3){const q=cam.p(vAltAz(al*D2R,(F.az+a)*D2R));if(q)pts.push(q)}ctx.beginPath();pts.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.stroke()}
+  ctx.setLineDash([]);
+  /* 궤적 */
+  const pr=v=>cam.p(v);
+  if(opt.trail&&S3.trailFrom!=null&&T>S3.trailFrom&&vis>0){
+    const span=Math.min(T-S3.trailFrom,24),n=Math.max(4,Math.min(90,Math.ceil(span*6)));
+    for(const s of STARS){
+      const a=s.bg?0.35:0.75;ctx.strokeStyle=`rgba(200,220,255,${a*vis})`;ctx.lineWidth=s.bg?0.8:1.4;
+      ctx.beginPath();let pen=false,prev=null;
+      for(let i=0;i<=n;i++){const v=horOf(s,T-span+span*i/n);const q=v.z>-0.05?pr(v):null;
+        if(!q||(prev&&Math.hypot(q[0]-prev[0],q[1]-prev[1])>120)){pen=false;prev=q;continue}
+        if(!pen){ctx.moveTo(q[0],q[1]);pen=true}else ctx.lineTo(q[0],q[1]);prev=q}
+      ctx.stroke();
+    }
+  }
+  if(opt.trail&&S3.trailFrom!=null&&T>S3.trailFrom){ /* 태양 궤적 */
+    const span=Math.min(T-S3.trailFrom,24),n=Math.ceil(span*6)+2;ctx.strokeStyle='rgba(255,200,80,.85)';ctx.lineWidth=3;ctx.beginPath();let pen=false;
+    for(let i=0;i<=n;i++){const tt=T-span+span*i/n;const v=eqToHor((tt-12)*15*D2R,0);const q=v.z>-0.05?pr(v):null;if(!q){pen=false;continue}if(!pen){ctx.moveTo(q[0],q[1]);pen=true}else ctx.lineTo(q[0],q[1])}ctx.stroke();
+  }
+  /* 별자리 선 */
+  const P=STARS.map(s=>{const v=horOf(s,T);return{v,q:v.z>-0.05?pr(v):null}});
+  if(opt.lines&&vis>0){ctx.strokeStyle=`rgba(140,190,255,${0.55*vis})`;ctx.lineWidth=1.2;
+    for(const [a,b] of LINES){const A=P[a],B=P[b];if(A.q&&B.q){ctx.beginPath();ctx.moveTo(A.q[0],A.q[1]);ctx.lineTo(B.q[0],B.q[1]);ctx.stroke()}}}
+  /* 별 */
+  if(vis>0){
+    STARS.forEach((s,i)=>{const q=P[i].q;if(!q||q[0]<-10||q[0]>W+10||q[1]<-10||q[1]>H+10)return;
+      const r=Math.max(0.7,2.9-s.mag*0.5);ctx.fillStyle=`rgba(255,255,255,${vis*(s.bg?0.75:1)})`;ctx.beginPath();ctx.arc(q[0],q[1],r,0,7);ctx.fill();
+      if(s.name&&P[i].v.z>0){ctx.fillStyle=i===0?`rgba(255,226,140,${vis})`:`rgba(220,230,255,${0.85*vis})`;ctx.font=(i===0?'14px Jua':'12px "Noto Sans KR"')+', sans-serif';ctx.textAlign='left';
+        ctx.fillText(s.name,q[0]+6,q[1]-5);if(i===0){ctx.strokeStyle=`rgba(255,226,140,${vis})`;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(q[0],q[1],7,0,7);ctx.stroke()}}
+    });
+    if(opt.lines)for(const gl of GROUP_LABELS){let sx=0,sy=0,c=0,up=true;for(let i=gl.i[0];i<=gl.i[1];i++){const p=P[i];if(!p.q||p.v.z<0){up=false;break}sx+=p.q[0];sy+=p.q[1];c++}
+      if(up&&c){ctx.fillStyle=`rgba(140,190,255,${0.9*vis})`;ctx.font='13px Jua, sans-serif';ctx.textAlign='center';ctx.fillText(gl.name,sx/c,sy/c+26)}}
+  }
+  /* 이동 방향 화살표 */
+  if(opt.arrow){
+    const pick=[0,1,4,7,8,10,13,14,20,21,22,23,24,25,26,27,28,29,30,31,32];
+    const drawArr=(v0,v1,col)=>{const a=pr(v0),b=pr(v1);if(!a||!b||v0.z<0.03)return;const ang=Math.atan2(b[1]-a[1],b[0]-a[0]);const L=24;
+      const sx=a[0]+Math.cos(ang)*8,sy=a[1]+Math.sin(ang)*8,ex=sx+Math.cos(ang)*L,ey=sy+Math.sin(ang)*L;
+      ctx.strokeStyle=col;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();arrowHead(ctx,ex,ey,ang,7,col)};
+    if(vis>0)for(const i of pick){if(i===0)continue;const s=STARS[i];drawArr(horOf(s,T),horOf(s,T+0.7),`rgba(255,226,140,${vis})`)}
+    drawArr(sunV,eqToHor((T+0.7-12)*15*D2R,0),'#fff3c0');
+  }
+  /* 태양 */
+  const sq=pr(sunV);
+  if(sq&&sunV.z>-0.06){const gg=ctx.createRadialGradient(sq[0],sq[1],2,sq[0],sq[1],60);gg.addColorStop(0,'rgba(255,250,220,1)');gg.addColorStop(.25,'rgba(255,214,107,.8)');gg.addColorStop(1,'rgba(255,214,107,0)');
+    ctx.fillStyle=gg;ctx.beginPath();ctx.arc(sq[0],sq[1],60,0,7);ctx.fill();ctx.fillStyle='#fff6d0';ctx.beginPath();ctx.arc(sq[0],sq[1],13,0,7);ctx.fill();
+    ctx.fillStyle='#5a3a00';ctx.font='14px Jua, sans-serif';ctx.textAlign='center';ctx.fillText('태양',sq[0],sq[1]+32)}
+  /* 땅 */
+  const hz=[];for(let a=-120;a<=120;a+=2){const q=pr(vAltAz(0,(F.az+a)*D2R));if(q)hz.push(q)}
+  const gg2=ctx.createLinearGradient(0,H*0.6,0,H);gg2.addColorStop(0,mixc([20,40,32],[60,110,80],day));gg2.addColorStop(1,mixc([10,20,18],[38,74,54],day));
+  ctx.fillStyle=gg2;ctx.beginPath();hz.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.lineTo(W+40,H+40);ctx.lineTo(-40,H+40);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=1.5;ctx.beginPath();hz.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.stroke();
+  /* 방위 글자 */
+  const names=['북','북동','동','남동','남','남서','서','북서'];
+  for(let k=0;k<8;k++){const q=pr(vAltAz(0,k*45*D2R));if(!q||q[0]<10||q[0]>W-10)continue;const main=k%2===0;
+    ctx.fillStyle=main?'#fff':'rgba(255,255,255,.6)';ctx.font=(main?'22px':'15px')+' Jua, sans-serif';ctx.textAlign='center';ctx.fillText(names[k],q[0],q[1]+(main?28:22));
+    ctx.strokeStyle='rgba(255,255,255,.6)';ctx.beginPath();ctx.moveTo(q[0],q[1]);ctx.lineTo(q[0],q[1]+6);ctx.stroke()}
+  /* 글자 */
+  ctx.fillStyle='rgba(5,10,30,.55)';ctx.fillRect(10,10,330,62);
+  ctx.fillStyle='#fff';ctx.font='19px Jua, sans-serif';ctx.textAlign='left';ctx.fillText(`우리나라에서 ${F.name}쪽 하늘을 바라본 모습`,20,36);
+  ctx.font='14px "Noto Sans KR", sans-serif';ctx.fillStyle='#cfe0ff';ctx.fillText(timeStr(T)+(sunAlt>0?'  · 낮':sunAlt>-12?'  · 새벽·저녁 어스름':'  · 밤'),20,60);
+  if(opt.trail&&S3.trailFrom!=null&&T>S3.trailFrom){const hrs=Math.min(T-S3.trailFrom,24);ctx.fillStyle='rgba(5,10,30,.55)';ctx.fillRect(W-250,10,240,40);ctx.fillStyle='#ffe28c';ctx.font='15px Jua, sans-serif';ctx.textAlign='right';ctx.fillText(`${hrs.toFixed(1)}시간 동안 약 ${Math.round(hrs*15)}° 회전`,W-20,36)}
+  if(!opt.day&&sunAlt>0){ctx.fillStyle='rgba(255,255,255,.85)';ctx.font='13px "Noto Sans KR", sans-serif';ctx.textAlign='right';ctx.fillText('낮에는 햇빛 때문에 별이 보이지 않을 뿐, 별은 하늘에 그대로 있어요',W-14,H-14)}
+}
+const OBS={
+  E:{q:'동쪽 하늘: 별과 태양은 지평선에서 어느 쪽으로 기울어져 떠오르나요?',a:'오른쪽 위(남쪽 방향)로 비스듬히 떠올라요.'},
+  S:{q:'남쪽 하늘: 천체는 어느 쪽에서 어느 쪽으로 움직이나요?',a:'왼쪽(동쪽)에서 오른쪽(서쪽)으로, 지평선과 나란하게 둥근 호를 그리며 지나가요.'},
+  W:{q:'서쪽 하늘: 천체는 어떻게 지나요?',a:'오른쪽 아래(북쪽 방향)로 비스듬히 져요.'},
+  N:{q:'북쪽 하늘: 북극성 주변의 별들은 어떤 모양으로, 어느 방향으로 도나요? 북극성은 어떤가요?',a:'북극성 근처를 중심으로 시계 반대 방향으로 원을 그리며 돌아요. 북극성은 지구 자전축을 북쪽으로 늘인 곳 가까이에 있어서 거의 움직이지 않는 것처럼 보여요. (궤적 남기기를 켜고 6시간 정도 흘려 보세요.)'}
+};
+function renderObs(){const o=OBS[S3.dir];const el=document.getElementById('obs3');
+  el.innerHTML=`<b class="jua" style="font-size:1.1rem">관찰 질문</b><p style="margin:4px 0">${o.q}</p><button class="btn ghost" id="obsA">내 생각과 비교하기</button><div class="fb" id="obsAfb">${o.a}<br><span class="muted">→ 모든 천체가 지구 자전과 반대 방향, 즉 <b>동쪽에서 서쪽으로</b> 1시간에 약 15°씩 움직이는 것처럼 보여요.</span></div>`;
+  document.getElementById('obsA').onclick=()=>document.getElementById('obsAfb').className='fb show ok'}
+document.querySelectorAll('#dirSeg button').forEach(b=>b.onclick=()=>{S3.dir=b.dataset.d;document.querySelectorAll('#dirSeg button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderObs()});
+const play3=document.getElementById('play3'),time3=document.getElementById('time3'),trail3=document.getElementById('trail3');
+function updPlay3(){play3.textContent=S3.play?'❚❚ 멈춤':'▶ 시간 흐르기'}
+play3.onclick=()=>{S3.play=!S3.play;if(S3.play&&trail3.checked&&S3.trailFrom==null)S3.trailFrom=S3.T;updPlay3()};
+trail3.onchange=()=>{S3.trailFrom=trail3.checked?S3.T:null};
+time3.oninput=()=>{const base=Math.floor(S3.T/24)*24;let nt=base+(+time3.value);S3.T=nt;if(S3.trailFrom!=null&&S3.T<S3.trailFrom)S3.trailFrom=S3.T};
+renderObs();
+
+/* ===================================================
+   4단계
+   =================================================== */
+function modelTracks(){
+  const decs=[-30,-15,0,15,30,45,60,72];const tr=[];
+  decs.forEach((d,i)=>{const pts=[];let brk=false;for(let h=-180;h<=180;h+=2){const v=eqToHor(h*D2R,d*D2R);if(v.z<0){brk=true;continue}pts.push({v,brk});brk=false}tr.push({color:'#2a5bd7',pts})});
+  return tr;
+}
+let showModel=false;
+document.getElementById('showAns1').onclick=()=>{showModel=true;document.getElementById('ans1').style.display='grid';drawModel()};
+function drawModel(){const t=modelTracks();drawDirPanel(document.getElementById('aE'),'E',t);drawDirPanel(document.getElementById('aS'),'S',t);drawDirPanel(document.getElementById('aW'),'W',t);drawDirPanel(document.getElementById('aN'),'N',t)}
+document.querySelectorAll('#q4a button').forEach(b=>b.onclick=()=>{
+  const ok=b.dataset.a==='opp';document.querySelectorAll('#q4a button').forEach(x=>x.classList.remove('right','wrong'));b.classList.add(ok?'right':'wrong');
+  const fb=document.getElementById('q4afb');fb.className='fb show '+(ok?'ok':'no');
+  fb.innerHTML=ok?'맞아요! 지구본은 서쪽→동쪽으로 돌았지만, 관측자 모형에게 전등 빛은 <b>반대 방향(동쪽→서쪽)</b>으로 움직이는 것처럼 보였어요.':'가상 실험의 결과 그림에서 화살표 방향을 다시 확인해 보세요. 빛은 동쪽에서 떠서 어디로 졌나요?'});
+document.querySelectorAll('[data-check]').forEach(b=>b.onclick=()=>{
+  const id=b.dataset.check;const sels=[...document.querySelectorAll('#'+id+' select')];let all=true;
+  sels.forEach(s=>{const ok=s.value===s.dataset.ans;s.classList.toggle('right',ok);s.classList.toggle('wrong',!ok);if(!ok)all=false});
+  const fb=document.getElementById(id+'fb');fb.className='fb show '+(all?'ok':'no');
+  if(id==='q4b')fb.innerHTML=all?'맞아요! 전등은 <b>태양이나 별 같은 지구 밖의 천체</b>, 플라스틱 반구는 <b>관측자가 보는 하늘</b>을 나타내요.':'빨간 칸을 다시 생각해 보세요. 지구본은 무엇을 나타냈는지 떠올리면 도움이 돼요.';
+  else fb.innerHTML=all?'모두 맞았어요! ㉠ 남쪽 ㉡ 서쪽 ㉢ 북극성 ㉣ 시계 반대':'빨간 칸을 다시 확인해 보세요. ③단계 하늘 시뮬레이션에서 그 방향을 직접 관찰하면 도움이 돼요.';
+});
+document.getElementById('showAns4c').onclick=()=>{const fb=document.getElementById('q4cfb');fb.className='fb show ok';
+  fb.innerHTML='예시 답: 지구가 하루에 한 바퀴씩 <b>서쪽에서 동쪽으로 자전</b>하기 때문에, 지구에 있는 관측자에게는 천체가 그 반대인 <b>동쪽에서 서쪽으로</b> 움직이는 것처럼 보인다. 그래서 하루 동안 천체의 위치가 달라진다.'};
+
+/* ===================================================
+   단계 전환 + 애니메이션
+   =================================================== */
+let step=1;
+document.querySelectorAll('nav.steps button').forEach(b=>b.onclick=()=>{
+  step=+b.dataset.step;document.querySelectorAll('nav.steps button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  document.querySelectorAll('section.step').forEach(s=>s.classList.toggle('on',s.id==='s'+step));
+  if(step===4&&showModel)requestAnimationFrame(drawModel);
+  window.scrollTo({top:0});
+});
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(0.05,(now-last)/1000);last=now;
+  if(step===1){if(S1.play)S1.T+=dt*1.5;drawSpace(cvS1,S1.T,{view:null})}
+  else if(step===2){
+    if(lab.auto)rotateGlobe(dt*35*D2R);
+    if(lab.hold)rotateGlobe(dt*30*D2R);
+    drawView();
+    drawLab(now);const tr=labTracks();drawDome(document.getElementById('cvDome'),tr);
+    drawDirPanel(document.getElementById('cvE'),'E',tr);drawDirPanel(document.getElementById('cvS'),'S',tr);drawDirPanel(document.getElementById('cvW'),'W',tr);drawDirPanel(document.getElementById('cvN'),'N',tr);
+  }
+  else if(step===3){
+    if(S3.play){S3.T+=dt*(+document.getElementById('speed3').value);}
+    time3.value=((S3.T%24)+24)%24;
+    drawSpace(cvS3,S3.T,{view:S3.dir});drawSky(S3.T);
+  }
+  requestAnimationFrame(loop);
+}
+window.addEventListener('resize',()=>{if(step===4&&showModel)drawModel()});
+setHint();updPlay1();
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
